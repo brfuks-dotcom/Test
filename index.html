@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎲 Dashboard Yatzi Analytics</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0d1117; --surface: #161b22; --surface2: #21262d; --border: #30363d;
+      --purple: #a371f7; --blue: #58a6ff; --green: #3fb950; --yellow: #e3b341;
+      --red: #f85149; --orange: #db6d28; --text: #e6edf3; --muted: #8b949e;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; font-size:14px; }
+    header {
+      background:linear-gradient(135deg,#1a0a2e 0%,#0d1117 60%,#0a1628 100%);
+      border-bottom:1px solid var(--border); padding:20px 28px;
+      display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;
+    }
+    .logo { display:flex; align-items:center; gap:10px; }
+    .logo-icon { font-size:36px; }
+    .logo h1 { font-size:22px; font-weight:800; background:linear-gradient(135deg,var(--purple),var(--blue)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .logo p { color:var(--muted); font-size:12px; margin-top:2px; }
+    .header-stats { display:flex; gap:24px; }
+    .hstat { text-align:center; }
+    .hstat-val { font-size:20px; font-weight:800; color:var(--purple); }
+    .hstat-lbl { font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
+
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; padding:20px 28px 0; }
+    .kpi { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px; transition:.2s; }
+    .kpi:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(163,113,247,.12); }
+    .kpi-val { font-size:28px; font-weight:800; margin:4px 0; }
+    .kpi-lbl { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.06em; }
+    .kpi-sub { font-size:11px; color:var(--muted); margin-top:3px; }
+    .c-purple{color:var(--purple)} .c-blue{color:var(--blue)} .c-green{color:var(--green)} .c-yellow{color:var(--yellow)} .c-red{color:var(--red)} .c-orange{color:var(--orange)}
+
+    .tabs { display:flex; padding:0 28px; border-bottom:1px solid var(--border); overflow-x:auto; margin-top:20px; }
+    .tab { padding:10px 18px; cursor:pointer; border-bottom:2px solid transparent; color:var(--muted); font-weight:500; white-space:nowrap; transition:.2s; font-size:13px; }
+    .tab:hover { color:var(--text); }
+    .tab.active { color:var(--purple); border-bottom-color:var(--purple); }
+
+    .content { padding:20px 28px; max-width:1400px; margin:0 auto; }
+    .tab-pane { display:none; animation:fadeIn .25s ease; }
+    .tab-pane.active { display:block; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+    .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+    .grid-auto { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; }
+
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px; margin-bottom:16px; }
+    .card-title { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; margin-bottom:14px; }
+    .card canvas { max-height:320px; }
+
+    table { width:100%; border-collapse:collapse; }
+    th { text-align:left; padding:8px 12px; font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); border-bottom:1px solid var(--border); }
+    td { padding:9px 12px; border-bottom:1px solid rgba(48,54,61,.4); font-size:13px; }
+    tr:hover td { background:rgba(255,255,255,.025); }
+    td.num { text-align:right; font-feature-settings:"tnum"; }
+    .medal-1{color:var(--yellow);font-weight:800} .medal-2{color:#9e9e9e;font-weight:700} .medal-3{color:#c77834;font-weight:700}
+
+    .badge { display:inline-block; padding:2px 8px; border-radius:20px; font-size:10px; font-weight:700; }
+    .bg-purple{background:rgba(163,113,247,.15);color:var(--purple)}
+    .bg-green{background:rgba(63,185,80,.15);color:var(--green)}
+    .bg-blue{background:rgba(88,166,255,.15);color:var(--blue)}
+    .bg-yellow{background:rgba(227,179,65,.15);color:var(--yellow)}
+    .bg-red{background:rgba(248,81,73,.15);color:var(--red)}
+    .bg-orange{background:rgba(219,109,40,.15);color:var(--orange)}
+
+    .insight-list { display:flex; flex-direction:column; gap:8px; }
+    .insight { background:rgba(163,113,247,.07); border:1px solid rgba(163,113,247,.15); border-radius:8px; padding:10px 14px; display:flex; align-items:flex-start; gap:10px; }
+    .ins-icon { font-size:16px; flex-shrink:0; margin-top:1px; }
+    .ins-text { font-size:12px; line-height:1.55; color:var(--text); }
+    .ins-text strong { color:var(--purple); }
+
+    select { background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:7px 10px; border-radius:7px; font-size:13px; cursor:pointer; outline:none; }
+    select:hover { border-color:var(--purple); }
+
+    .rec-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin-bottom:16px; }
+    .rec-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px; display:flex; align-items:center; gap:12px; }
+    .rec-ico { font-size:30px; flex-shrink:0; }
+    .rec-val { font-size:22px; font-weight:800; }
+    .rec-lbl { color:var(--muted); font-size:11px; }
+    .rec-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+
+    .sc-table th { background:rgba(163,113,247,.08); }
+    .sc-best { color:var(--green); font-weight:700; }
+    .sc-zero { color:rgba(139,148,158,.4); }
+    .sc-total { font-weight:800; font-size:15px; border-top:2px solid var(--border) !important; }
+
+    .bar-wrap { display:flex; align-items:center; gap:8px; }
+    .bar-bg { flex:1; height:6px; background:var(--surface2); border-radius:3px; overflow:hidden; }
+    .bar-fill { height:100%; border-radius:3px; transition:.4s; }
+
+    ::-webkit-scrollbar{width:6px;height:6px} ::-webkit-scrollbar-track{background:var(--bg)} ::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px}
+    @media(max-width:768px){.grid-2,.grid-3{grid-template-columns:1fr}.content,.kpi-grid{padding:12px}header{padding:14px}.header-stats{gap:12px}}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-icon">🎲</span>
+    <div>
+      <h1>Yatzi Analytics</h1>
+      <p>Dashboard interativo de partidas</p>
+    </div>
+  </div>
+  <div class="header-stats">
+    <div class="hstat"><div class="hstat-val">25</div><div class="hstat-lbl">Partidas</div></div>
+    <div class="hstat"><div class="hstat-val">13</div><div class="hstat-lbl">Jogadores</div></div>
+    <div class="hstat"><div class="hstat-val">346</div><div class="hstat-lbl">Recorde</div></div>
+    <div class="hstat"><div class="hstat-val" id="hstat-avg">—</div><div class="hstat-lbl">Média Geral</div></div>
+  </div>
+</header>
+
+<div class="kpi-grid">
+  <div class="kpi"><div class="kpi-val c-purple" id="kpi-wins-bruno">—</div><div class="kpi-lbl">Vitórias Bruno</div><div class="kpi-sub" id="kpi-wr-bruno">—</div></div>
+  <div class="kpi"><div class="kpi-val c-blue" id="kpi-wins-brenno">—</div><div class="kpi-lbl">Vitórias Brenno</div><div class="kpi-sub" id="kpi-wr-brenno">—</div></div>
+  <div class="kpi"><div class="kpi-val c-orange" id="kpi-wins-amanda">—</div><div class="kpi-lbl">Vitórias Amanda</div><div class="kpi-sub" id="kpi-wr-amanda">—</div></div>
+  <div class="kpi"><div class="kpi-val c-yellow">3x</div><div class="kpi-lbl">Yatzi Records</div><div class="kpi-sub">Gi (328) &amp; Amanda (346)</div></div>
+  <div class="kpi"><div class="kpi-val c-green" id="kpi-yatzi-total">—</div><div class="kpi-lbl">Total Yatzis</div><div class="kpi-sub">em todas as partidas</div></div>
+  <div class="kpi"><div class="kpi-val c-red" id="kpi-low">—</div><div class="kpi-lbl">Menor placar</div><div class="kpi-sub" id="kpi-low-sub">—</div></div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('geral')">📊 Visão Geral</div>
+  <div class="tab" onclick="showTab('players')">👥 Jogadores</div>
+  <div class="tab" onclick="showTab('games')">🎮 Por Partida</div>
+  <div class="tab" onclick="showTab('cats')">📋 Categorias</div>
+  <div class="tab" onclick="showTab('records')">🏆 Recordes</div>
+</div>
+
+<div id="tab-geral" class="tab-pane active content">
+  <div class="card">
+    <div class="card-title">📈 Evolução de Pontuação por Partida — Trio Principal (Bruno, Brenno, Amanda)</div>
+    <canvas id="chartEvolucao" style="max-height:340px"></canvas>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">🏅 Vitórias por Jogador</div>
+      <canvas id="chartWins"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Média de Pontuação por Jogador (≥3 partidas)</div>
+      <canvas id="chartAvg"></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🔥 Desempenho por Partida — Mapa de Calor</div>
+    <canvas id="chartHeatmap" style="max-height:260px"></canvas>
+  </div>
+  <div class="card">
+    <div class="card-title">💡 Principais Insights</div>
+    <div class="insight-list" id="insightList"></div>
+  </div>
+</div>
+
+<div id="tab-players" class="tab-pane content">
+  <div class="card">
+    <div class="card-title">🏆 Ranking Geral de Jogadores</div>
+    <div style="overflow-x:auto">
+      <table id="rankingTable">
+        <thead><tr>
+          <th>#</th><th>Jogador</th><th>Partidas</th><th>Vitórias</th><th>% Vitória</th>
+          <th class="num">Melhor</th><th class="num">Média</th><th class="num">Pior</th>
+          <th>Yatzis</th>
+        </tr></thead>
+        <tbody id="rankingBody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">🆚 Head-to-Head — Bruno vs Amanda vs Brenno</div>
+      <canvas id="chartH2H" style="max-height:300px"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">📦 Distribuição de Pontuações (3 principais)</div>
+      <canvas id="chartBox" style="max-height:300px"></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🗓️ Taxa de Vitória por Partida — Trio Principal</div>
+    <canvas id="chartWinRate" style="max-height:260px"></canvas>
+  </div>
+</div>
+
+<div id="tab-games" class="tab-pane content">
+  <div class="card">
+    <div class="card-title">🎮 Selecione uma Partida</div>
+    <select id="gameSelect" onchange="renderGameDetail()" style="margin-bottom:16px">
+    </select>
+    <div class="grid-2" style="gap:20px;margin-top:16px">
+      <div>
+        <div id="scorecardWrap" style="overflow-x:auto"></div>
+      </div>
+      <div>
+        <canvas id="chartGameRadar" style="max-height:320px"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📊 Pontuações por Categoria nesta Partida</div>
+    <canvas id="chartGameCats" style="max-height:280px"></canvas>
+  </div>
+</div>
+
+<div id="tab-cats" class="tab-pane content">
+  <div class="card">
+    <div class="card-title">🕸️ Radar de Categorias — Trio Principal (média por partida)</div>
+    <canvas id="chartRadarMain" style="max-height:380px"></canvas>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">📊 Média por Categoria — Trio Principal</div>
+      <canvas id="chartCatBar" style="max-height:300px"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">🎯 Taxa de Conversão de Bônus (S+/S-/Yatzi)</div>
+      <canvas id="chartBonusRate" style="max-height:300px"></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🎲 Distribuição de Yatzis por Jogador</div>
+    <canvas id="chartYatziDist" style="max-height:240px"></canvas>
+  </div>
+</div>
+
+<div id="tab-records" class="tab-pane content">
+  <div class="rec-grid" id="recGrid"></div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">🏅 Top 10 Maiores Pontuações Individuais</div>
+      <table id="topScoresTable">
+        <thead><tr><th>#</th><th>Jogador</th><th>Partida</th><th class="num">Pontuação</th></tr></thead>
+        <tbody id="topScoresBody"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">📉 10 Menores Pontuações (partidas completas)</div>
+      <table id="lowScoresTable">
+        <thead><tr><th>#</th><th>Jogador</th><th>Partida</th><th class="num">Pontuação</th></tr></thead>
+        <tbody id="lowScoresBody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🎲 Lances Especiais e Curiosidades</div>
+    <div id="specialFacts" class="insight-list"></div>
+  </div>
+</div>
+
+<script>
+const COLORS = {
+  Bruno:'#a371f7', Brenno:'#58a6ff', Amanda:'#f0883e',
+  Joe:'#3fb950',   Tha:'#e3b341',    Zé:'#db6d28',
+  Gi:'#f85149',    Lari:'#39d353',   Rafa:'#79c0ff',
+  Nhé:'#ffa657',   Brebre:'#d2a8ff', Arik:'#7ee787', Roni:'#ff7b72'
+};
+
+const GAMES = [
+  {id:1,scores:[
+    {p:'Bruno', d1:1, d2:6, d3:6, d4:12,d5:10,d6:12,T:29,Q:26,F:25,Sp:30,Sm:40,Y:50, X:13,total:260},
+    {p:'Brenno',d1:2, d2:2, d3:6, d4:16,d5:5, d6:12,T:27,Q:0, F:25,Sp:0, Sm:0, Y:0,  X:27,total:122},
+    {p:'Amanda',d1:2, d2:2, d3:3, d4:12,d5:10,d6:12,T:25,Q:28,F:25,Sp:30,Sm:40,Y:0,  X:23,total:212},
+  ]},
+  {id:2,scores:[
+    {p:'Bruno', d1:1, d2:2, d3:9, d4:8, d5:10,d6:18,T:23,Q:0, F:25,Sp:30,Sm:40,Y:0,  X:21,total:187},
+    {p:'Brenno',d1:2, d2:8, d3:9, d4:8, d5:15,d6:18,T:23,Q:0, F:25,Sp:30,Sm:40,Y:50, X:24,total:252},
+    {p:'Amanda',d1:4, d2:6, d3:6, d4:16,d5:15,d6:18,T:25,Q:29,F:25,Sp:30,Sm:0, Y:0,  X:26,total:200},
+  ]},
+  {id:3,scores:[
+    {p:'Bruno', d1:2, d2:2, d3:3, d4:8, d5:5, d6:18,T:26,Q:7, F:25,Sp:0, Sm:40,Y:50, X:23,total:209},
+    {p:'Brenno',d1:1, d2:4, d3:9, d4:12,d5:15,d6:24,T:23,Q:28,F:25,Sp:30,Sm:40,Y:0,  X:28,total:239},
+    {p:'Amanda',d1:3, d2:8, d3:9, d4:8, d5:10,d6:24,T:23,Q:29,F:25,Sp:30,Sm:40,Y:0,  X:28,total:237},
+  ]},
+  {id:4,scores:[
+    {p:'Bruno', d1:3, d2:2, d3:9, d4:12,d5:20,d6:6, T:20,Q:24,F:25,Sp:30,Sm:40,Y:0,  X:14,total:205},
+    {p:'Brenno',d1:1, d2:2, d3:6, d4:16,d5:15,d6:18,T:27,Q:23,F:25,Sp:30,Sm:40,Y:0,  X:25,total:228},
+    {p:'Amanda',d1:1, d2:4, d3:12,d4:8, d5:10,d6:18,T:24,Q:29,F:25,Sp:30,Sm:40,Y:0,  X:23,total:224},
+  ]},
+  {id:5,scores:[
+    {p:'Bruno', d1:1, d2:6, d3:6, d4:16,d5:20,d6:18,T:23,Q:0, F:25,Sp:30,Sm:40,Y:50, X:27,total:262},
+    {p:'Brenno',d1:2, d2:6, d3:9, d4:8, d5:20,d6:18,T:25,Q:0, F:25,Sp:30,Sm:40,Y:50, X:18,total:251},
+    {p:'Amanda',d1:1, d2:4, d3:6, d4:16,d5:15,d6:18,T:25,Q:0, F:25,Sp:30,Sm:40,Y:0,  X:17,total:197},
+  ]},
+  {id:6,scores:[
+    {p:'Bruno', d1:1, d2:4, d3:12,d4:12,d5:5, d6:24,T:27,Q:16,F:25,Sp:0, Sm:40,Y:0,  X:26,total:192},
+    {p:'Brenno',d1:2, d2:2, d3:9, d4:12,d5:5, d6:6, T:28,Q:19,F:25,Sp:30,Sm:0, Y:0,  X:25,total:163},
+    {p:'Amanda',d1:1, d2:4, d3:9, d4:16,d5:10,d6:6, T:24,Q:28,F:0, Sp:30,Sm:40,Y:0,  X:21,total:189},
+  ]},
+  {id:7,scores:[
+    {p:'Bruno', d1:2, d2:2, d3:9, d4:12,d5:10,d6:0, T:22,Q:26,F:25,Sp:30,Sm:40,Y:50, X:25,total:253},
+    {p:'Amanda',d1:1, d2:4, d3:6, d4:8, d5:10,d6:12,T:23,Q:18,F:25,Sp:30,Sm:40,Y:0,  X:26,total:203},
+    {p:'Arik',  d1:2, d2:2, d3:6, d4:16,d5:5, d6:12,T:24,Q:0, F:25,Sp:0, Sm:0, Y:0,  X:14,total:92},
+    {p:'Roni',  d1:2, d2:2, d3:3, d4:12,d5:15,d6:6, T:23,Q:0, F:25,Sp:0, Sm:0, Y:50, X:21,total:159},
+  ]},
+  {id:8,scores:[
+    {p:'Bruno', d1:4, d2:2, d3:12,d4:16,d5:25,d6:24,T:27,Q:0, F:25,Sp:30,Sm:0, Y:50, X:21,total:236},
+    {p:'Nhé',   d1:4, d2:2, d3:6, d4:8, d5:10,d6:24,T:19,Q:27,F:25,Sp:0, Sm:0, Y:0,  X:22,total:147},
+    {p:'Rafa',  d1:2, d2:2, d3:3, d4:16,d5:5, d6:12,T:27,Q:0, F:25,Sp:30,Sm:0, Y:50, X:22,total:194},
+    {p:'Brebre',d1:2, d2:2, d3:9, d4:8, d5:15,d6:24,T:24,Q:26,F:25,Sp:0, Sm:40,Y:0,  X:23,total:198},
+  ]},
+  {id:9,scores:[
+    {p:'Bruno', d1:3, d2:4, d3:9, d4:4, d5:15,d6:12,T:28,Q:0, F:25,Sp:30,Sm:40,Y:0,  X:20,total:190},
+    {p:'Brenno',d1:2, d2:4, d3:9, d4:16,d5:10,d6:6, T:25,Q:28,F:25,Sp:30,Sm:40,Y:0,  X:25,total:220},
+    {p:'Amanda',d1:1, d2:2, d3:12,d4:12,d5:10,d6:18,T:18,Q:0, F:25,Sp:0, Sm:0, Y:0,  X:12,total:110},
+  ]},
+  {id:10,scores:[
+    {p:'Bruno', d1:1, d2:4, d3:3, d4:8, d5:10,d6:12,T:27,Q:0, F:25,Sp:30,Sm:0, Y:0,  X:13,total:133},
+    {p:'Brenno',d1:1, d2:2, d3:3, d4:4, d5:10,d6:6, T:17,Q:29,F:25,Sp:30,Sm:40,Y:50, X:24,total:241},
+    {p:'Amanda',d1:2, d2:4, d3:9, d4:8, d5:5, d6:6, T:27,Q:29,F:25,Sp:0, Sm:0, Y:0,  X:25,total:140},
+    {p:'Rafa',  d1:2, d2:2, d3:6, d4:12,d5:15,d6:6, T:0, Q:0, F:25,Sp:30,Sm:40,Y:0,  X:20,total:158},
+  ]},
+  {id:11,scores:[
+    {p:'Bruno', d1:1, d2:6, d3:9, d4:4, d5:5, d6:18,T:22,Q:14,F:25,Sp:30,Sm:40,Y:0,  X:22,total:196},
+    {p:'Amanda',d1:1, d2:2, d3:12,d4:4, d5:15,d6:6, T:23,Q:0, F:25,Sp:30,Sm:40,Y:0,  X:21,total:179},
+    {p:'Rafa',  d1:2, d2:2, d3:3, d4:4, d5:0, d6:0, T:0, Q:28,F:25,Sp:0, Sm:0, Y:0,  X:23,total:87},
+  ]},
+  {id:12,scores:[
+    {p:'Bruno', d1:1, d2:4, d3:6, d4:12,d5:10,d6:12,T:28,Q:0, F:0, Sp:30,Sm:40,Y:0,  X:22,total:165},
+    {p:'Amanda',d1:2, d2:2, d3:6, d4:12,d5:15,d6:18,T:26,Q:29,F:25,Sp:0, Sm:40,Y:50, X:24,total:249},
+    {p:'Brenno',d1:1, d2:2, d3:3, d4:8, d5:15,d6:0, T:23,Q:24,F:25,Sp:30,Sm:40,Y:50, X:13,total:234},
+  ]},
+  {id:13,scores:[
+    {p:'Bruno', d1:4, d2:2, d3:9, d4:16,d5:10,d6:18,T:28,Q:22,F:25,Sp:30,Sm:40,Y:50, X:24,total:278},
+    {p:'Amanda',d1:2, d2:4, d3:9, d4:4, d5:15,d6:18,T:20,Q:0, F:25,Sp:0, Sm:40,Y:0,  X:24,total:161},
+    {p:'Brenno',d1:2, d2:6, d3:3, d4:16,d5:5, d6:18,T:25,Q:0, F:25,Sp:0, Sm:0, Y:50, X:25,total:175},
+  ]},
+  {id:14,scores:[
+    {p:'Bruno', d1:3, d2:2, d3:12,d4:16,d5:10,d6:18,T:27,Q:29,F:25,Sp:30,Sm:40,Y:50, X:20,total:282},
+    {p:'Amanda',d1:2, d2:2, d3:3, d4:16,d5:15,d6:18,T:27,Q:29,F:25,Sp:30,Sm:40,Y:0,  X:16,total:223},
+    {p:'Brenno',d1:1, d2:6, d3:9, d4:12,d5:15,d6:18,T:28,Q:28,F:25,Sp:30,Sm:40,Y:0,  X:24,total:236},
+  ]},
+  {id:15,scores:[
+    {p:'Bruno', d1:1, d2:2, d3:3, d4:4, d5:10,d6:12,T:12,Q:14,F:25,Sp:0, Sm:0, Y:0,  X:24,total:107},
+    {p:'Amanda',d1:2, d2:2, d3:6, d4:16,d5:10,d6:6, T:22,Q:19,F:25,Sp:0, Sm:40,Y:0,  X:14,total:162},
+    {p:'Brenno',d1:1, d2:2, d3:3, d4:8, d5:15,d6:12,T:21,Q:29,F:25,Sp:0, Sm:0, Y:0,  X:17,total:133},
+  ]},
+  {id:16,scores:[
+    {p:'Bruno', d1:1, d2:2, d3:3, d4:16,d5:15,d6:12,T:25,Q:26,F:0, Sp:0, Sm:0, Y:0,  X:17,total:117},
+    {p:'Amanda',d1:4, d2:2, d3:12,d4:8, d5:15,d6:18,T:19,Q:21,F:25,Sp:30,Sm:40,Y:50, X:23,total:267},
+    {p:'Brenno',d1:1, d2:6, d3:6, d4:12,d5:15,d6:18,T:23,Q:0, F:25,Sp:0, Sm:40,Y:0,  X:24,total:170},
+  ]},
+  {id:17,scores:[
+    {p:'Bruno', d1:2, d2:2, d3:3, d4:12,d5:5, d6:18,T:10,Q:0, F:25,Sp:0, Sm:0, Y:0,  X:16,total:93},
+    {p:'Amanda',d1:1, d2:2, d3:3, d4:12,d5:5, d6:18,T:27,Q:0, F:25,Sp:0, Sm:40,Y:0,  X:23,total:156},
+    {p:'Brenno',d1:4, d2:4, d3:6, d4:12,d5:5, d6:6, T:22,Q:19,F:25,Sp:30,Sm:0, Y:0,  X:24,total:157},
+    {p:'Joe',   d1:3, d2:2, d3:6, d4:16,d5:20,d6:18,T:18,Q:17,F:25,Sp:0, Sm:40,Y:0,  X:25,total:190},
+    {p:'Lari',  d1:1, d2:2, d3:3, d4:4, d5:5, d6:18,T:22,Q:0, F:25,Sp:0, Sm:0, Y:50, X:25,total:155},
+    {p:'Tha',   d1:2, d2:2, d3:3, d4:8, d5:20,d6:18,T:23,Q:26,F:25,Sp:0, Sm:40,Y:50, X:16,total:233},
+  ]},
+  {id:18,scores:[
+    {p:'Bruno', d1:1, d2:2, d3:6, d4:12,d5:10,d6:18,T:23,Q:0, F:25,Sp:0, Sm:0, Y:0,  X:16,total:113},
+    {p:'Amanda',d1:2, d2:2, d3:6, d4:8, d5:15,d6:18,T:27,Q:22,F:25,Sp:0, Sm:40,Y:0,  X:12,total:177},
+    {p:'Gi',    d1:4, d2:2, d3:3, d4:12,d5:5, d6:18,T:24,Q:24,F:25,Sp:0, Sm:40,Y:150,X:21,total:328},
+    {p:'Zé',    d1:1, d2:2, d3:3, d4:4, d5:10,d6:24,T:22,Q:21,F:25,Sp:30,Sm:40,Y:0,  X:24,total:206},
+    {p:'Brenno',d1:3, d2:8, d3:9, d4:4, d5:10,d6:12,T:24,Q:27,F:25,Sp:0, Sm:40,Y:0,  X:26,total:188},
+    {p:'Lari',  d1:1, d2:4, d3:6, d4:4, d5:15,d6:18,T:27,Q:0, F:25,Sp:0, Sm:0, Y:0,  X:25,total:125},
+    {p:'Tha',   d1:1, d2:2, d3:9, d4:12,d5:15,d6:12,T:28,Q:26,F:25,Sp:0, Sm:40,Y:0,  X:20,total:190},
+    {p:'Joe',   d1:1, d2:4, d3:6, d4:16,d5:15,d6:12,T:27,Q:22,F:25,Sp:0, Sm:40,Y:0,  X:23,total:191},
+  ]},
+  {id:19,scores:[
+    {p:'Bruno', d1:3, d2:6, d3:6, d4:8, d5:15,d6:18,T:20,Q:0, F:25,Sp:30,Sm:40,Y:0,  X:18,total:189},
+    {p:'Amanda',d1:3, d2:2, d3:12,d4:8, d5:20,d6:12,T:27,Q:26,F:25,Sp:0, Sm:40,Y:150,X:21,total:346},
+    {p:'Zé',    d1:1, d2:2, d3:3, d4:12,d5:5, d6:12,T:24,Q:22,F:25,Sp:30,Sm:40,Y:0,  X:24,total:200},
+    {p:'Brenno',d1:4, d2:2, d3:12,d4:12,d5:15,d6:18,T:23,Q:0, F:25,Sp:0, Sm:40,Y:50, X:19,total:220},
+    {p:'Lari',  d1:1, d2:4, d3:9, d4:8, d5:15,d6:24,T:24,Q:23,F:25,Sp:0, Sm:0, Y:50, X:22,total:205},
+    {p:'Tha',   d1:2, d2:2, d3:6, d4:12,d5:10,d6:18,T:25,Q:26,F:25,Sp:0, Sm:40,Y:0,  X:19,total:185},
+    {p:'Joe',   d1:3, d2:4, d3:6, d4:8, d5:10,d6:18,T:25,Q:26,F:25,Sp:30,Sm:40,Y:0,  X:23,total:218},
+  ]},
+  {id:20,scores:[
+    {p:'Bruno', d1:2, d2:2, d3:3, d4:8, d5:5, d6:6, T:23,Q:0, F:25,Sp:0, Sm:0, Y:0,  X:22,total:96},
+    {p:'Amanda',d1:2, d2:2, d3:12,d4:4, d5:10,d6:6, T:28,Q:7, F:25,Sp:0, Sm:40,Y:0,  X:20,total:156},
+    {p:'Brenno',d1:1, d2:2, d3:9, d4:8, d5:18,d6:12,T:24,Q:26,F:25,Sp:0, Sm:40,Y:0,  X:24,total:189},
+    {p:'Tha',   d1:2, d2:2, d3:6, d4:8, d5:15,d6:18,T:28,Q:26,F:25,Sp:0, Sm:40,Y:0,  X:23,total:193},
+    {p:'Joe',   d1:1, d2:6, d3:6, d4:8, d5:20,d6:18,T:23,Q:22,F:25,Sp:30,Sm:40,Y:0,  X:25,total:224},
+  ]},
+  {id:21,scores:[
+    {p:'Joe',   d1:2, d2:4, d3:3, d4:12,d5:5, d6:24,T:23,Q:26,F:25,Sp:30,Sm:0, Y:0,  X:16,total:170},
+    {p:'Tha',   d1:2, d2:4, d3:3, d4:4, d5:10,d6:12,T:21,Q:0, F:25,Sp:0, Sm:0, Y:50, X:27,total:158},
+    {p:'Brenno',d1:0, d2:8, d3:3, d4:8, d5:20,d6:18,T:23,Q:26,F:25,Sp:0, Sm:40,Y:0,  X:21,total:192},
+    {p:'Zé',    d1:1, d2:4, d3:9, d4:12,d5:20,d6:24,T:28,Q:28,F:25,Sp:0, Sm:40,Y:50, X:25,total:266},
+    {p:'Gi',    d1:1, d2:4, d3:6, d4:4, d5:10,d6:18,T:28,Q:29,F:25,Sp:0, Sm:0, Y:0,  X:24,total:149},
+    {p:'Amanda',d1:1, d2:2, d3:3, d4:12,d5:10,d6:6, T:25,Q:0, F:0, Sp:30,Sm:40,Y:0,  X:22,total:151},
+    {p:'Lari',  d1:1, d2:6, d3:6, d4:16,d5:15,d6:18,T:28,Q:18,F:0, Sp:30,Sm:40,Y:50, X:18,total:246},
+    {p:'Bruno', d1:4, d2:4, d3:6, d4:12,d5:10,d6:24,T:26,Q:26,F:25,Sp:30,Sm:40,Y:0,  X:23,total:230},
+  ]},
+  {id:22,scores:[
+    {p:'Bruno', d1:3, d2:4, d3:3, d4:4, d5:20,d6:6, T:23,Q:26,F:0, Sp:30,Sm:40,Y:0,  X:25,total:184},
+    {p:'Brenno',d1:2, d2:2, d3:6, d4:4, d5:15,d6:24,T:23,Q:25,F:25,Sp:30,Sm:0, Y:0,  X:23,total:179},
+    {p:'Zé',    d1:1, d2:2, d3:3, d4:16,d5:15,d6:18,T:22,Q:0, F:25,Sp:0, Sm:40,Y:0,  X:28,total:170},
+    {p:'Tha',   d1:3, d2:4, d3:3, d4:16,d5:15,d6:18,T:22,Q:29,F:25,Sp:30,Sm:0, Y:0,  X:14,total:179},
+    {p:'Joe',   d1:1, d2:4, d3:3, d4:16,d5:20,d6:18,T:24,Q:23,F:25,Sp:30,Sm:0, Y:50, X:22,total:236},
+    {p:'Amanda',d1:1, d2:4, d3:9, d4:12,d5:15,d6:12,T:23,Q:22,F:25,Sp:0, Sm:0, Y:0,  X:20,total:143},
+  ]},
+  {id:23,scores:[
+    {p:'Bruno', d1:1, d2:4, d3:6, d4:8, d5:20,d6:18,T:21,Q:22,F:25,Sp:30,Sm:0, Y:0,  X:21,total:176},
+    {p:'Brenno',d1:1, d2:4, d3:12,d4:16,d5:5, d6:12,T:24,Q:0, F:25,Sp:30,Sm:0, Y:0,  X:20,total:149},
+    {p:'Amanda',d1:1, d2:2, d3:3, d4:8, d5:15,d6:6, T:27,Q:0, F:25,Sp:30,Sm:0, Y:0,  X:13,total:130},
+  ]},
+  {id:24,scores:[
+    {p:'Bruno', d1:2, d2:4, d3:3, d4:12,d5:5, d6:6, T:24,Q:0, F:25,Sp:0, Sm:40,Y:50, X:21,total:192},
+    {p:'Amanda',d1:2, d2:2, d3:3, d4:4, d5:10,d6:18,T:24,Q:21,F:25,Sp:0, Sm:0, Y:0,  X:23,total:132},
+    {p:'Brenno',d1:1, d2:2, d3:6, d4:12,d5:15,d6:18,T:25,Q:26,F:25,Sp:0, Sm:40,Y:0,  X:24,total:194},
+  ]},
+  {id:25,scores:[
+    {p:'Bruno', d1:1, d2:4, d3:12,d4:12,d5:15,d6:18,T:22,Q:28,F:25,Sp:0, Sm:0, Y:0,  X:25,total:162},
+    {p:'Amanda',d1:1, d2:2, d3:3, d4:8, d5:10,d6:12,T:23,Q:0, F:25,Sp:0, Sm:0, Y:50, X:24,total:158},
+    {p:'Brenno',d1:1, d2:2, d3:6, d4:12,d5:5, d6:18,T:24,Q:26,F:25,Sp:30,Sm:40,Y:0,  X:23,total:212},
+    {p:'Joe',   d1:2, d2:6, d3:3, d4:8, d5:5, d6:18,T:24,Q:24,F:25,Sp:30,Sm:0, Y:50, X:24,total:219},
+  ]},
+];
+
+function getPlayerStats() {
+  const stats = {};
+  GAMES.forEach(g => {
+    const winner = g.scores.reduce((a,b)=>a.total>b.total?a:b).p;
+    g.scores.forEach(s => {
+      if (!stats[s.p]) stats[s.p] = {games:0,wins:0,scores:[],yatzis:0,cats:{d1:[],d2:[],d3:[],d4:[],d5:[],d6:[],T:[],Q:[],F:[],Sp:[],Sm:[],Y:[],X:[]}};
+      const st = stats[s.p];
+      st.games++;
+      if (s.p === winner) st.wins++;
+      st.scores.push(s.total);
+      if (s.Y > 0) st.yatzis += Math.round(s.Y/50);
+      ['d1','d2','d3','d4','d5','d6','T','Q','F','Sp','Sm','Y','X'].forEach(k => st.cats[k].push(s[k]||0));
+    });
+  });
+  Object.values(stats).forEach(st => {
+    st.avg = Math.round(st.scores.reduce((a,b)=>a+b,0)/st.scores.length);
+    st.max = Math.max(...st.scores);
+    st.min = Math.min(...st.scores);
+    st.wr  = Math.round(st.wins/st.games*100);
+    Object.keys(st.cats).forEach(k => { st.cats[k+'_avg'] = +(st.cats[k].reduce((a,b)=>a+b,0)/st.cats[k].length).toFixed(1); });
+  });
+  return stats;
+}
+
+const PSTATS = getPlayerStats();
+const ALL_PLAYERS = Object.keys(PSTATS).sort((a,b)=>PSTATS[b].avg - PSTATS[a].avg);
+const TRIO = ['Bruno','Brenno','Amanda'];
+
+function initKPIs() {
+  const allScores = GAMES.flatMap(g=>g.scores.map(s=>({...s,game:g.id})));
+  const avg = Math.round(allScores.map(s=>s.total).reduce((a,b)=>a+b,0)/allScores.length);
+  document.getElementById('hstat-avg').textContent = avg;
+  ['Bruno','Brenno','Amanda'].forEach(p => {
+    const st = PSTATS[p]; const sfx = p.toLowerCase();
+    document.getElementById('kpi-wins-'+sfx).textContent = st.wins;
+    document.getElementById('kpi-wr-'+sfx).textContent = `em ${st.games} partidas (${st.wr}%)`;
+  });
+  document.getElementById('kpi-yatzi-total').textContent = Object.values(PSTATS).reduce((a,st)=>a+st.yatzis,0);
+  const low = allScores.filter(s=>!(s.game===11&&s.p==='Rafa')).reduce((a,b)=>a.total<b.total?a:b);
+  document.getElementById('kpi-low').textContent = low.total;
+  document.getElementById('kpi-low-sub').textContent = `${low.p} – Partida ${low.game}`;
+}
+
+function initChartEvolucao() {
+  new Chart(document.getElementById('chartEvolucao'), {
+    type:'line',
+    data:{ labels:GAMES.map(g=>'P'+g.id),
+      datasets:TRIO.map(p => ({ label:p,
+        data:GAMES.map(g=>{ const s=g.scores.find(x=>x.p===p); return s?s.total:null; }),
+        borderColor:COLORS[p], backgroundColor:COLORS[p]+'22', tension:.35, pointRadius:5, pointHoverRadius:8, fill:false, spanGaps:true })) },
+    options:{ responsive:true, plugins:{legend:{labels:{color:'#e6edf3',font:{size:12}}}},
+      scales:{ x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}, y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'},min:50} }}
+  });
+}
+
+function initChartWins() {
+  const players = ALL_PLAYERS.filter(p=>PSTATS[p].wins>0);
+  new Chart(document.getElementById('chartWins'), {
+    type:'doughnut',
+    data:{ labels:players,
+      datasets:[{ data:players.map(p=>PSTATS[p].wins), backgroundColor:players.map(p=>COLORS[p]||'#555'), borderColor:'#161b22', borderWidth:2 }] },
+    options:{ responsive:true, plugins:{legend:{labels:{color:'#e6edf3',font:{size:12}}}} }
+  });
+}
+
+function initChartAvg() {
+  const players = ALL_PLAYERS.filter(p=>PSTATS[p].games>=3).sort((a,b)=>PSTATS[b].avg-PSTATS[a].avg);
+  new Chart(document.getElementById('chartAvg'), {
+    type:'bar',
+    data:{ labels:players,
+      datasets:[{ label:'Média', data:players.map(p=>PSTATS[p].avg),
+        backgroundColor:players.map(p=>(COLORS[p]||'#555')+'cc'), borderColor:players.map(p=>COLORS[p]||'#555'), borderWidth:2, borderRadius:6 }] },
+    options:{ responsive:true, plugins:{legend:{display:false}},
+      scales:{ x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}, y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'},min:100} }}
+  });
+}
+
+function initChartHeatmap() {
+  new Chart(document.getElementById('chartHeatmap'), {
+    type:'bar',
+    data:{ labels:GAMES.map(g=>'P'+g.id),
+      datasets:TRIO.map(p => ({ label:p,
+        data:GAMES.map(g=>{ const s=g.scores.find(x=>x.p===p); return s?s.total:null; }),
+        backgroundColor:COLORS[p]+'99', borderColor:COLORS[p], borderWidth:1, borderRadius:4, spanGaps:true })) },
+    options:{ responsive:true, plugins:{legend:{labels:{color:'#e6edf3',font:{size:11}}}},
+      scales:{ x:{ticks:{color:'#8b949e',font:{size:10}},grid:{color:'#21262d'}}, y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'},min:0} }}
+  });
+}
+
+function initInsights() {
+  const insights = [
+    {icon:'👑', text:'<strong>Bruno</strong> é o maior vencedor absoluto com <strong>'+PSTATS['Bruno'].wins+' vitórias</strong> em '+PSTATS['Bruno'].games+' partidas ('+PSTATS['Bruno'].wr+'% de aproveitamento).'},
+    {icon:'🎲', text:'<strong>Amanda</strong> detém o maior score individual com <strong>346 pontos</strong> na Partida 19, após obter <strong>3 Yatzis</strong> (Y=150 pts)!'},
+    {icon:'🌟', text:'<strong>Gi</strong> foi o único convidado a superar <strong>300 pontos</strong> (328 pts na Partida 18) também com 3 Yatzis — 2ª maior pontuação de todos os tempos.'},
+    {icon:'📈', text:'<strong>Brenno</strong> tem a melhor consistência entre o trio principal — média de <strong>'+PSTATS['Brenno'].avg+' pts</strong>.'},
+    {icon:'💥', text:'A partida mais emocionante foi a 3: Brenno 239 vs Amanda 237 — diferença de apenas <strong>2 pontos</strong>!'},
+    {icon:'🎯', text:'<strong>Trinca (T)</strong> é a categoria mais diferenciadora — jogadores com T>25 vencem com muito mais frequência.'},
+    {icon:'📉', text:'A partida 17 teve o <strong>maior campo</strong> (6 jogadores), com Tha vencendo com 233 pts.'},
+    {icon:'🏅', text:'Total de Yatzis em todas as partidas: <strong>'+Object.values(PSTATS).reduce((a,st)=>a+st.yatzis,0)+' Yatzis</strong> pelo grupo!'},
+  ];
+  const list = document.getElementById('insightList');
+  insights.forEach(i => { list.innerHTML += `<div class="insight"><span class="ins-icon">${i.icon}</span><span class="ins-text">${i.text}</span></div>`; });
+}
+
+function initRankingTable() {
+  const tbody = document.getElementById('rankingBody');
+  const sorted = ALL_PLAYERS.filter(p=>PSTATS[p].games>=2).sort((a,b)=>PSTATS[b].wins-PSTATS[a].wins||PSTATS[b].avg-PSTATS[a].avg);
+  sorted.forEach((p,i) => {
+    const st = PSTATS[p];
+    const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1;
+    const yStr = st.yatzis>0?`<span class="badge bg-yellow">🎲 ${st.yatzis}</span>`:'<span style="color:#555">—</span>';
+    tbody.innerHTML += `<tr>
+      <td>${medal}</td>
+      <td><span style="color:${COLORS[p]||'#8b949e'};font-weight:700">${p}</span></td>
+      <td>${st.games}</td><td>${st.wins}</td>
+      <td><div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:${st.wr}%;background:${COLORS[p]||'#555'}"></div></div>${st.wr}%</div></td>
+      <td class="num" style="color:var(--green)">${st.max}</td>
+      <td class="num" style="font-weight:700">${st.avg}</td>
+      <td class="num" style="color:var(--muted)">${st.min}</td>
+      <td>${yStr}</td></tr>`;
+  });
+}
+
+function initChartH2H() {
+  const h2h = { Bruno:{wins:0,games:0}, Brenno:{wins:0,games:0}, Amanda:{wins:0,games:0} };
+  GAMES.forEach(g => {
+    const here = TRIO.filter(p=>g.scores.find(s=>s.p===p));
+    if (here.length>=2) {
+      const winner = g.scores.filter(s=>TRIO.includes(s.p)).reduce((a,b)=>a.total>b.total?a:b).p;
+      here.forEach(p=>{ h2h[p].games++; if(p===winner) h2h[p].wins++; });
+    }
+  });
+  new Chart(document.getElementById('chartH2H'), {
+    type:'bar',
+    data:{ labels:['Vitórias','Derrotas'],
+      datasets:TRIO.map(p=>({ label:p, data:[h2h[p].wins,h2h[p].games-h2h[p].wins],
+        backgroundColor:[COLORS[p]+'cc',COLORS[p]+'44'], borderColor:COLORS[p], borderWidth:1, borderRadius:5 })) },
+    options:{ responsive:true, plugins:{legend:{labels:{color:'#e6edf3'}}},
+      scales:{ x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}, y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}} }}
+  });
+}
+
+function initChartBox() {
+  new Chart(document.getElementById('chartBox'), {
+    type:'scatter',
+    data:{ datasets:TRIO.map(p=>({ label:p,
+      data:PSTATS[p].scores.map(v=>({x:p,y:v})),
+      backgroundColor:COLORS[p]+'88', borderColor:COLORS[p], pointRadius:6, pointHoverRadius:9 })) },
+    options:{ responsive:true,
+      plugins:{ legend:{labels:{color:'#e6edf3',font:{size:12}}},
+        tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y} pts`}} },
+      scales:{ x:{type:'category',labels:TRIO,ticks:{color:'#e6edf3'},grid:{color:'#21262d'}},
+               y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'},min:80,max:300} }}
+  });
+}
+
+function initChartWinRate() {
+  new Chart(document.getElementById('chartWinRate'), {
+    type:'line',
+    data:{ labels:GAMES.map(g=>'P'+g.id),
+      datasets:TRIO.map(p=>{
+        let wins=0,games=0; const rates=[];
+        GAMES.forEach(g=>{ const s=g.scores.find(x=>x.p===p); if(!s){rates.push(null);return;} games++;
+          if(g.scores.reduce((a,b)=>a.total>b.total?a:b).p===p) wins++;
+          rates.push(Math.round(wins/games*100)); });
+        return { label:p, data:rates, borderColor:COLORS[p], backgroundColor:'transparent', tension:.3, pointRadius:3, spanGaps:true };
+      }) },
+    options:{ responsive:true, plugins:{legend:{labels:{color:'#e6edf3'}}},
+      scales:{ x:{ticks:{color:'#8b949e',font:{size:10}},grid:{color:'#21262d'}},
+               y:{ticks:{color:'#8b949e',callback:v=>v+'%'},grid:{color:'#21262d'},min:0,max:100} }}
+  });
+}
+
+function initGameSelect() {
+  const sel = document.getElementById('gameSelect');
+  GAMES.forEach(g => {
+    const w = g.scores.reduce((a,b)=>a.total>b.total?a:b);
+    sel.innerHTML += `<option value="${g.id}">Partida ${g.id} — ${w.p} ganhou (${w.total} pts) | ${g.scores.map(s=>s.p).join(', ')}</option>`;
+  });
+}
+
+let _radarChart=null, _catChart=null;
+function renderGameDetail() {
+  const gid = parseInt(document.getElementById('gameSelect').value);
+  const game = GAMES.find(g=>g.id===gid); if(!game) return;
+  const scores = game.scores;
+  const winner = scores.reduce((a,b)=>a.total>b.total?a:b).p;
+  const catLabels = ['1 (Ás)','2 (Dois)','3 (Três)','4 (Quatro)','5 (Cinco)','6 (Seis)','Trinca','Quadra','Full House','Seq. Peq.','Seq. Gran.','Yatzi','Chance','TOTAL'];
+  const keys = ['d1','d2','d3','d4','d5','d6','T','Q','F','Sp','Sm','Y','X','total'];
+  let html = '<table class="sc-table"><thead><tr><th>Categoria</th>';
+  scores.forEach(s => {
+    const w=s.p===winner;
+    html+=`<th style="text-align:center;color:${COLORS[s.p]||'#fff'};${w?'font-weight:800':''}">${s.p}${w?' 🏆':''}</th>`;
+  });
+  html+='</tr></thead><tbody>';
+  catLabels.forEach((lbl,i) => {
+    const isTotal=i===13; const vals=scores.map(s=>s[keys[i]]||0); const maxVal=Math.max(...vals);
+    html+=`<tr><td style="color:var(--muted);font-size:12px;${isTotal?'font-weight:800;color:var(--text)':''}">${lbl}</td>`;
+    vals.forEach(v=>{
+      const best=v===maxVal&&maxVal>0&&!isTotal; const zero=v===0;
+      html+=`<td class="num ${isTotal?'sc-total':''} ${best?'sc-best':''} ${zero&&!isTotal?'sc-zero':''}">${v}</td>`;
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('scorecardWrap').innerHTML = html;
+  const keyR=['d1','d2','d3','d4','d5','d6','T','Q','F','Sp','Sm','Y','X'];
+  const maxR=[6,12,18,20,25,30,30,30,25,30,40,50,30];
+  if(_radarChart) _radarChart.destroy();
+  _radarChart = new Chart(document.getElementById('chartGameRadar'), {
+    type:'radar',
+    data:{ labels:['1','2','3','4','5','6','T','Q','F','S+','S-','Y','X'],
+      datasets:scores.map(s=>({ label:s.p,
+        data:keyR.map((k,i)=>Math.round(((s[k]||0)/maxR[i])*100)),
+        borderColor:COLORS[s.p]||'#888', backgroundColor:(COLORS[s.p]||'#888')+'33', pointRadius:3 })) },
+    options:{ responsive:true, plugins:{legend:{labels:{color:'#e6edf3',font:{size:11}}}},
+      scales:{r:{ticks:{display:false},grid:{color:'#30363d'},pointLabels:{color:'#8b949e',font:{size:11}},min:0,max:100}} }
+  });
+  if(_catChart) _catChart.destroy();
+  _catChart = new Chart(document.getElementById('chartGameCats'), {
+    type:'bar',
+    data:{ labels:['1','2','3','4','5','6','T','Q','F','S+','S-','Y','X'],
+      datasets:scores.map(s=>({ label:s.p, data:keyR.map(k=>s[k]||0),
+        backgroundColor:(COLORS[s.p]||'#888')+'bb', borderColor:COLORS[s.p]||'#888', borderWidth:1, borderRadius:4 })) },
+    options:{ responsive:true, plugins:{legend:{labels:{color:'#e6edf3'}}},
+      scales:{ x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}, y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}} }}
+  });
+}
+
+function initChartRadarMain() {
+  const keyR=['d1','d2','d3','d4','d5','d6','T','Q','F','Sp','Sm','Y','X'];
+  new Chart(document.getElementById('chartRadarMain'), {
+    type:'radar',
+    data:{ labels:['Ás','Dois','Três','Quatro','Cinco','Seis','Trinca','Quadra','Full','S+','S-','Yatzi','Chance'],
+      datasets:TRIO.map(p=>({ label:p, data:keyR.map(k=>PSTATS[p].cats[k+'_avg']),
+        borderColor:COLORS[p], backgroundColor:COLORS[p]+'30', pointRadius:3 })) },
+    options:{ responsive:true, plugins:{legend:{labels:{color:'#e6edf3',font:{size:12}}}},
+      scales:{r:{ticks:{color:'#8b949e',font:{size:10}},grid:{color:'#30363d'},pointLabels:{color:'#8b949e',font:{size:11}}}} }
+  });
+}
+
+function initChartCatBar() {
+  const cats=['1','2','3','4','5','6','T','Q','F','S+','S-','X'];
+  const keys=['d1','d2','d3','d4','d5','d6','T','Q','F','Sp','Sm','X'];
+  new Chart(document.getElementById('chartCatBar'), {
+    type:'bar',
+    data:{ labels:cats,
+      datasets:TRIO.map(p=>({ label:p, data:keys.map(k=>PSTATS[p].cats[k+'_avg']),
+        backgroundColor:COLORS[p]+'bb', borderColor:COLORS[p], borderWidth:1, borderRadius:4 })) },
+    options:{ responsive:true, plugins:{legend:{labels:{color:'#e6edf3',font:{size:11}}}},
+      scales:{ x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}, y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}} }}
+  });
+}
+
+function initChartBonusRate() {
+  const players = ALL_PLAYERS.filter(p=>PSTATS[p].games>=3);
+  const pct=(p,k)=>Math.round(PSTATS[p].cats[k].filter(v=>v>0).length/PSTATS[p].cats[k].length*100);
+  new Chart(document.getElementById('chartBonusRate'), {
+    type:'bar',
+    data:{ labels:players,
+      datasets:[
+        {label:'S+ (seq.peq)', data:players.map(p=>pct(p,'Sp')), backgroundColor:'#a371f7aa', borderColor:'#a371f7', borderWidth:1, borderRadius:4},
+        {label:'S- (seq.gran)',data:players.map(p=>pct(p,'Sm')), backgroundColor:'#58a6ffaa', borderColor:'#58a6ff', borderWidth:1, borderRadius:4},
+        {label:'Yatzi (Y)',    data:players.map(p=>pct(p,'Y')),  backgroundColor:'#e3b341aa', borderColor:'#e3b341', borderWidth:1, borderRadius:4},
+      ] },
+    options:{ responsive:true, plugins:{legend:{labels:{color:'#e6edf3'}}},
+      scales:{ x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},
+               y:{ticks:{color:'#8b949e',callback:v=>v+'%'},grid:{color:'#21262d'},max:100} }}
+  });
+}
+
+function initChartYatziDist() {
+  const players = ALL_PLAYERS.filter(p=>PSTATS[p].yatzis>0).sort((a,b)=>PSTATS[b].yatzis-PSTATS[a].yatzis);
+  new Chart(document.getElementById('chartYatziDist'), {
+    type:'bar',
+    data:{ labels:players,
+      datasets:[{ label:'Total de Yatzis', data:players.map(p=>PSTATS[p].yatzis),
+        backgroundColor:players.map(p=>(COLORS[p]||'#555')+'cc'), borderColor:players.map(p=>COLORS[p]||'#555'), borderWidth:2, borderRadius:6 }] },
+    options:{ responsive:true, plugins:{legend:{display:false}},
+      scales:{ x:{ticks:{color:'#e6edf3'},grid:{color:'#21262d'}}, y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'},min:0} }}
+  });
+}
+
+function initRecords() {
+  const allScores = GAMES.flatMap(g=>g.scores.map(s=>({...s,game:g.id})));
+  const sorted = [...allScores].sort((a,b)=>b.total-a.total);
+  const sortedAsc = [...allScores].filter(s=>!(s.game===11&&s.p==='Rafa')).sort((a,b)=>a.total-b.total);
+  const recs = [
+    {icon:'🥇',val:'346',lbl:'Maior Pontuação',sub:'Amanda — Partida 19 (3x Yatzi!)'},
+    {icon:'💥',val:'328',lbl:'2ª Maior Pontuação',sub:'Gi — Partida 18 (3x Yatzi!)'},
+    {icon:'🎲',val:'150',lbl:'Record de Yatzi',sub:'3 Yatzis em uma partida'},
+    {icon:'📉',val:sortedAsc[0].total,lbl:'Menor Pontuação',sub:`${sortedAsc[0].p} — P${sortedAsc[0].game}`},
+    {icon:'🔥',val:'282',lbl:'Melhor do Bruno',sub:'Partida 14'},
+    {icon:'💜',val:'252',lbl:'Melhor do Brenno',sub:'Partida 2'},
+    {icon:'🧡',val:PSTATS['Amanda'].max,lbl:'Melhor da Amanda',sub:'Partida 19'},
+    {icon:'👥',val:'8',lbl:'Maior Mesa',sub:'Partida 18 — 8 jogadores'},
+    {icon:'⚔️',val:'2',lbl:'Menor Margem',sub:'Brenno 239 vs Amanda 237 (P3)'},
+    {icon:'📊',val:PSTATS['Bruno'].avg,lbl:'Média Bruno',sub:`em ${PSTATS['Bruno'].games} jogos`},
+    {icon:'📊',val:PSTATS['Brenno'].avg,lbl:'Média Brenno',sub:`em ${PSTATS['Brenno'].games} jogos`},
+    {icon:'📊',val:PSTATS['Amanda'].avg,lbl:'Média Amanda',sub:`em ${PSTATS['Amanda'].games} jogos`},
+  ];
+  const grid = document.getElementById('recGrid');
+  recs.forEach(r => {
+    grid.innerHTML += `<div class="rec-card"><span class="rec-ico">${r.icon}</span><div><div class="rec-val">${r.val}</div><div class="rec-lbl">${r.lbl}</div><div class="rec-sub">${r.sub}</div></div></div>`;
+  });
+  sorted.slice(0,10).forEach((s,i) => {
+    document.getElementById('topScoresBody').innerHTML += `<tr><td>${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</td><td style="color:${COLORS[s.p]||'#fff'};font-weight:700">${s.p}</td><td><span class="badge bg-purple">P${s.game}</span></td><td class="num" style="font-weight:800;color:var(--green)">${s.total}</td></tr>`;
+  });
+  sortedAsc.slice(0,10).forEach((s,i) => {
+    document.getElementById('lowScoresBody').innerHTML += `<tr><td>${i+1}</td><td style="color:${COLORS[s.p]||'#fff'};font-weight:700">${s.p}</td><td><span class="badge bg-blue">P${s.game}</span></td><td class="num" style="color:var(--red)">${s.total}</td></tr>`;
+  });
+  const facts = [
+    {icon:'🎲', text:'<strong>Triple Yatzi (150 pts):</strong> Gi (P18) e Amanda (P19) são os únicos com 3 Yatzis numa partida — feito raríssimo!'},
+    {icon:'🔥', text:'<strong>Bruno</strong> conseguiu Yatzi em 7 partidas diferentes — o jogador mais "afortunado" com dados iguais.'},
+    {icon:'📈', text:'Partidas 13 e 14 foram as melhores de Bruno: 278 e 282 pts — média de <strong>280 pts</strong> no dueto!'},
+    {icon:'💔', text:'Bruno teve sua pior sequência nas Partidas 17 e 20 com 93 e 96 pts — bem abaixo de sua média de '+PSTATS['Bruno'].avg+' pts.'},
+    {icon:'👑', text:'Amanda é a única do trio a ter feito <strong>3 Yatzis</strong> em uma partida e atingido os <strong>300+ pontos</strong>.'},
+    {icon:'🏆', text:'Tha foi a revelação dos convidados: venceu a P17 com 233 pts e nunca ficou abaixo de 155 pts em 6 jogos.'},
+    {icon:'📊', text:'Quadra (Q) teve a maior variância — alguns marcam 29 (quase máximo) enquanto outros ficam em 0.'},
+    {icon:'🎯', text:'A Partida 8 foi especial: Bruno marcou 25 pts nos "5s" — máximo absoluto possível (5×5=25).'},
+  ];
+  const sf=document.getElementById('specialFacts');
+  facts.forEach(f=>{ sf.innerHTML+=`<div class="insight"><span class="ins-icon">${f.icon}</span><span class="ins-text">${f.text}</span></div>`; });
+}
+
+function showTab(name) {
+  const names=['geral','players','games','cats','records'];
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',names[i]===name));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  initKPIs(); initChartEvolucao(); initChartWins(); initChartAvg(); initChartHeatmap();
+  initInsights(); initRankingTable(); initChartH2H(); initChartBox(); initChartWinRate();
+  initGameSelect(); renderGameDetail();
+  initChartRadarMain(); initChartCatBar(); initChartBonusRate(); initChartYatziDist();
+  initRecords();
+});
+</script>
+</body>
+</html>
