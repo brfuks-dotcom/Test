@@ -4,110 +4,196 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
 <title>Dicionário Mentiroso</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%95%B5%EF%B8%8F%3C/text%3E%3C/svg%3E">
 <style>
   :root {
-    --bg-1: #2b1055;
-    --bg-2: #7597de;
-    --card: #ffffff;
-    --card-text: #241a3d;
-    --accent: #ff8a3d;
-    --accent-dark: #e0672a;
-    --good: #2fbf71;
-    --bad: #e8543e;
-    --muted: #8a83a3;
+    --paper: #e8dcb5;
+    --paper-2: #f5eed3;
+    --ink: #241d10;
+    --ink-soft: #6e5f42;
+    --accent: #2f5d54;
+    --accent-strong: #1c3f38;
+    --flag: #9c3b2e;
+    --gold: #a97a1f;
+    --line: #cbb98c;
+    --shadow: rgba(36, 29, 16, 0.22);
+    --font-display: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #15130f;
+      --paper-2: #1e1a13;
+      --ink: #ecdfc0;
+      --ink-soft: #a2937a;
+      --accent: #6cb8a6;
+      --accent-strong: #8fd0bf;
+      --flag: #d9836d;
+      --gold: #d9ab52;
+      --line: #3a3226;
+      --shadow: rgba(0, 0, 0, 0.55);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #15130f;
+    --paper-2: #1e1a13;
+    --ink: #ecdfc0;
+    --ink-soft: #a2937a;
+    --accent: #6cb8a6;
+    --accent-strong: #8fd0bf;
+    --flag: #d9836d;
+    --gold: #d9ab52;
+    --line: #3a3226;
+    --shadow: rgba(0, 0, 0, 0.55);
+  }
+  :root[data-theme="light"] {
+    --paper: #e8dcb5;
+    --paper-2: #f5eed3;
+    --ink: #241d10;
+    --ink-soft: #6e5f42;
+    --accent: #2f5d54;
+    --accent-strong: #1c3f38;
+    --flag: #9c3b2e;
+    --gold: #a97a1f;
+    --line: #cbb98c;
+    --shadow: rgba(36, 29, 16, 0.22);
   }
   * { box-sizing: border-box; }
   html, body {
     margin: 0;
     padding: 0;
     min-height: 100%;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
   body {
-    background: linear-gradient(160deg, var(--bg-1), var(--bg-2));
-    background-attachment: fixed;
-    color: #fff;
+    background: radial-gradient(ellipse at top, var(--paper-2), var(--paper) 70%);
+    color: var(--ink);
+    font-family: var(--font-mono);
     display: flex;
     justify-content: center;
     min-height: 100vh;
-    padding: 20px 14px 60px;
+    padding: 28px 14px 60px;
   }
   #app {
     width: 100%;
-    max-width: 520px;
+    max-width: 540px;
+  }
+  header.masthead {
+    text-align: center;
+    margin-bottom: 22px;
+  }
+  header.masthead .tab {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--paper-2);
+    background: var(--ink);
+    padding: 4px 14px;
+    border-radius: 3px 3px 0 0;
   }
   h1.title {
+    font-family: var(--font-display);
     text-align: center;
-    font-size: 1.9rem;
-    margin: 6px 0 4px;
-    letter-spacing: 0.5px;
+    font-size: 2.1rem;
+    font-weight: 700;
+    font-style: italic;
+    margin: 4px 0 6px;
+    text-wrap: balance;
   }
   p.subtitle {
     text-align: center;
-    margin: 0 0 22px;
-    color: rgba(255,255,255,0.85);
-    font-size: 0.95rem;
+    margin: 0 auto;
+    max-width: 46ch;
+    color: var(--ink-soft);
+    font-size: 0.88rem;
+    line-height: 1.5;
   }
   .card {
-    background: var(--card);
-    color: var(--card-text);
-    border-radius: 18px;
+    position: relative;
+    background: var(--paper-2);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 4px;
     padding: 22px 20px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.25);
-    margin-bottom: 16px;
+    box-shadow: 0 10px 22px var(--shadow);
+    margin-bottom: 18px;
   }
+  .card::before {
+    content: attr(data-tab);
+    position: absolute;
+    top: -11px;
+    left: 16px;
+    background: var(--gold);
+    color: var(--paper-2);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 2px;
+  }
+  .card:not([data-tab])::before { content: none; }
   .card h2 {
+    font-family: var(--font-display);
     margin-top: 0;
-    font-size: 1.25rem;
+    font-size: 1.3rem;
   }
   .card h3 {
-    margin: 0 0 10px;
-    font-size: 1rem;
-    color: var(--muted);
-    font-weight: 600;
+    margin: 0 0 12px;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.1em;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 8px;
   }
-  .muted { color: var(--muted); }
+  .muted { color: var(--ink-soft); }
   button {
-    font-family: inherit;
+    font-family: var(--font-mono);
     cursor: pointer;
-    border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
+    border: 2px solid var(--ink);
+    border-radius: 3px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
     padding: 14px 18px;
     width: 100%;
-    transition: transform 0.05s ease, opacity 0.15s ease;
+    background: transparent;
+    color: var(--ink);
+    transition: transform 0.05s ease, opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
   }
-  button:active { transform: scale(0.98); }
-  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  button:active { transform: scale(0.97); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
   .btn-primary {
     background: var(--accent);
-    color: #fff;
+    border-color: var(--accent-strong);
+    color: var(--paper-2);
   }
-  .btn-primary:hover:not(:disabled) { background: var(--accent-dark); }
+  .btn-primary:hover:not(:disabled) { background: var(--accent-strong); }
   .btn-secondary {
-    background: #eee0ff;
-    color: #4b2e83;
+    background: transparent;
+    color: var(--ink);
+    border-color: var(--line);
     margin-top: 10px;
   }
-  .btn-ghost {
-    background: transparent;
-    color: var(--muted);
-    border: 2px dashed #ccc;
-  }
   .btn-danger {
-    background: #ffe3df;
-    color: var(--bad);
+    background: transparent;
+    color: var(--flag);
+    border-color: var(--flag);
+    margin-top: 10px;
   }
   input[type="text"], textarea {
     width: 100%;
-    font-family: inherit;
-    font-size: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
     padding: 12px 14px;
-    border-radius: 10px;
-    border: 2px solid #e3ddf4;
+    border-radius: 3px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
     outline: none;
     resize: vertical;
   }
@@ -125,137 +211,170 @@
   .player-row button {
     width: auto;
     padding: 10px 14px;
-    background: #ffe3df;
-    color: var(--bad);
+    color: var(--flag);
+    border-color: var(--line);
   }
   .add-row { display: flex; gap: 8px; margin-bottom: 6px; }
   .add-row input { flex: 1; }
   .add-row button { width: auto; padding: 12px 18px; }
   .word-display {
     text-align: center;
-    padding: 20px 10px 6px;
+    padding: 18px 10px 8px;
+  }
+  .word-display .eyebrow {
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
   }
   .word-display .term {
-    font-size: 2.1rem;
-    font-weight: 800;
-    color: var(--accent-dark);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 2.3rem;
+    font-weight: 700;
+    color: var(--accent);
     word-break: break-word;
   }
   .turn-banner {
     text-align: center;
-    background: #f4effc;
-    border-radius: 12px;
-    padding: 14px;
-    margin-bottom: 16px;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 18px;
+  }
+  .turn-banner .eyebrow {
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
   }
   .turn-banner .who {
-    font-size: 1.3rem;
-    font-weight: 800;
-    color: #4b2e83;
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--ink);
   }
   .pass-note {
     text-align: center;
-    color: var(--muted);
-    font-size: 0.88rem;
+    color: var(--ink-soft);
+    font-size: 0.85rem;
     margin-top: 4px;
+    line-height: 1.5;
   }
   .def-option {
     display: block;
     width: 100%;
     text-align: left;
-    background: #f8f6fd;
-    border: 2px solid #e3ddf4;
-    border-radius: 12px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 3px;
     padding: 14px;
     margin-bottom: 10px;
-    font-size: 0.98rem;
-    color: var(--card-text);
-    font-weight: 500;
+    font-size: 0.92rem;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: normal;
+    color: var(--ink);
   }
   .def-option:hover:not(:disabled) {
     border-color: var(--accent);
   }
   .def-option.own {
-    background: #f1f1f1;
-    color: var(--muted);
-  }
-  .def-option.selected {
-    border-color: var(--accent);
-    background: #fff1e6;
+    opacity: 0.55;
   }
   .reveal-item {
-    border-radius: 12px;
+    border-radius: 3px;
     padding: 14px;
     margin-bottom: 10px;
-    border: 2px solid #e3ddf4;
+    border: 1px solid var(--line);
+    background: var(--paper);
   }
   .reveal-item.real {
-    border-color: var(--good);
-    background: #eafcf3;
+    border-color: var(--accent);
+    box-shadow: inset 3px 0 0 var(--accent);
   }
   .reveal-item .meta {
     display: flex;
     justify-content: space-between;
-    font-size: 0.85rem;
-    color: var(--muted);
+    font-size: 0.78rem;
+    color: var(--ink-soft);
     margin-top: 8px;
     flex-wrap: wrap;
     gap: 6px;
   }
   .tag {
     display: inline-block;
-    background: var(--good);
-    color: #fff;
-    border-radius: 999px;
-    padding: 2px 10px;
-    font-size: 0.75rem;
+    background: var(--accent);
+    color: var(--paper-2);
+    border-radius: 2px;
+    padding: 2px 8px;
+    font-size: 0.68rem;
     font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
   .score-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 4px;
-    border-bottom: 1px solid #eee;
-    font-size: 1rem;
+    padding: 10px 2px;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.95rem;
   }
   .score-row:last-child { border-bottom: none; }
   .score-row .name { font-weight: 600; }
   .score-row .pts {
-    font-weight: 800;
-    color: var(--accent-dark);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
   }
-  .score-row.leader .name::before {
-    content: "👑 ";
-  }
-  .points-delta {
-    font-size: 0.78rem;
-    color: var(--good);
-    margin-left: 8px;
+  .score-row.leader .name::after {
+    content: " ★";
+    color: var(--gold);
   }
   .progress {
     text-align: center;
-    font-size: 0.85rem;
-    color: var(--muted);
-    margin-bottom: 8px;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
   }
   .error-msg {
-    color: var(--bad);
-    font-size: 0.88rem;
+    color: var(--flag);
+    font-size: 0.85rem;
     margin: -4px 0 12px;
+  }
+  .bonus-note {
+    text-align: center;
+    font-weight: 700;
+    color: var(--accent);
+    border-top: 1px dashed var(--line);
+    padding-top: 12px;
+    margin-top: 4px;
+    font-size: 0.88rem;
   }
   .footer-note {
     text-align: center;
-    color: rgba(255,255,255,0.6);
-    font-size: 0.78rem;
-    margin-top: 24px;
+    color: var(--ink-soft);
+    font-size: 0.75rem;
+    margin-top: 20px;
+  }
+  .rule {
+    border: none;
+    border-top: 1px dashed var(--line);
+    margin: 14px 0;
   }
 </style>
 </head>
 <body>
 <div id="app">
-  <h1 class="title">📖 Dicionário Mentiroso</h1>
-  <p class="subtitle">Sorteie uma palavra, invente uma definição convincente e tente enganar todo mundo.</p>
+  <header class="masthead">
+    <span class="tab">Dossiê de investigação lexical</span>
+    <h1 class="title">Dicionário Mentiroso</h1>
+    <p class="subtitle">Uma palavra rara, um bando de testemunhas pouco confiáveis e uma única definição verdadeira escondida no meio das mentiras.</p>
+  </header>
   <div id="screen"></div>
   <p class="footer-note">Passe o dispositivo entre os jogadores quando for solicitado.</p>
 </div>
@@ -377,7 +496,7 @@
     }).join("");
 
     var card = el(
-      '<div class="card">' +
+      '<div class="card" data-tab="Suspeitos">' +
         '<h3>Jogadores</h3>' +
         '<div id="playersList">' + rowsHtml + '</div>' +
         '<div class="add-row">' +
@@ -385,16 +504,16 @@
           '<button class="btn-secondary" id="addPlayerBtn" style="width:auto;">Adicionar</button>' +
         '</div>' +
         (state.players.length < 3 ? '<p class="error-msg">Adicione pelo menos 3 jogadores para uma boa votação.</p>' : '') +
-        '<button class="btn-primary" id="startGameBtn" ' + (state.players.length < 3 ? "disabled" : "") + '>Começar Jogo</button>' +
+        '<button class="btn-primary" id="startGameBtn" ' + (state.players.length < 3 ? "disabled" : "") + '>Abrir o caso</button>' +
       '</div>' +
-      '<div class="card">' +
+      '<div class="card" data-tab="Regras do interrogatório">' +
         '<h3>Como jogar</h3>' +
-        '<p style="font-size:0.92rem; line-height:1.5;">' +
+        '<p style="font-size:0.88rem; line-height:1.6;">' +
           '1. Sorteie uma palavra rara do dicionário.<br>' +
-          '2. Cada jogador (menos quem sorteou) escreve uma definição inventada, tentando parecer real.<br>' +
-          '3. Todos votam em qual definição acham que é a verdadeira.<br>' +
-          '4. Ganha pontos quem <b>enganar</b> outros jogadores (voto na sua definição falsa) e quem <b>acertar</b> a definição real.<br>' +
-          '5. Se ninguém votar na definição real, quem sorteou a palavra ganha um bônus por ter escolhido bem!' +
+          '2. Cada jogador, exceto quem sorteou, escreve um depoimento: uma definição inventada, tentando soar verdadeira.<br>' +
+          '3. Todos votam em qual depoimento acham que é a definição real.<br>' +
+          '4. Quem <b>engana</b> outro jogador (recebe voto na sua definição falsa) e quem <b>identifica</b> a definição real ganham pontos.<br>' +
+          '5. Se ninguém descobrir a definição real, quem sorteou a palavra leva um bônus por ter escondido bem o rastro.' +
         '</p>' +
       '</div>'
     );
@@ -443,13 +562,13 @@
     var drawer = state.players[state.currentDrawer];
     var card = el(
       '<div class="turn-banner">' +
-        '<div class="muted">Rodada ' + state.round + '</div>' +
+        '<div class="eyebrow">Dossiê nº ' + state.round + '</div>' +
         '<div class="who">' + escapeHtml(drawer.name) + '</div>' +
-        '<div class="muted">é quem vai sortear a palavra</div>' +
+        '<div class="muted">está com o arquivo. É quem vai sortear a palavra.</div>' +
       '</div>' +
       '<div class="card" style="text-align:center;">' +
-        '<p class="pass-note">Passe o dispositivo para <b>' + escapeHtml(drawer.name) + '</b> e clique abaixo.</p>' +
-        '<button class="btn-primary" id="drawWordBtn">🎲 Sortear Palavra</button>' +
+        '<p class="pass-note">Passe o dispositivo para <b>' + escapeHtml(drawer.name) + '</b> e abra o arquivo.</p>' +
+        '<button class="btn-primary" id="drawWordBtn">Sortear palavra</button>' +
       '</div>'
     );
     screenEl.innerHTML = "";
@@ -496,16 +615,16 @@
 
     var card = el(
       '<div class="word-display card">' +
-        '<div class="muted">A palavra é</div>' +
+        '<div class="eyebrow">Palavra sob investigação</div>' +
         '<div class="term">' + escapeHtml(state.currentWord.term) + '</div>' +
       '</div>' +
-      '<div class="card">' +
-        '<p class="progress">Faltam ' + remaining + ' jogador(es) escrever</p>' +
+      '<div class="card" data-tab="Depoimento">' +
+        '<p class="progress">Faltam ' + remaining + ' testemunho(s)</p>' +
         '<h3>Vez de: ' + escapeHtml(player.name) + '</h3>' +
-        '<p class="pass-note" style="margin-bottom:12px;">Escreva uma definição inventada, mas convincente, para essa palavra.</p>' +
-        '<textarea id="defInput" placeholder="Digite sua definição falsa aqui..."></textarea>' +
+        '<p class="pass-note" style="margin-bottom:12px;">Escreva um depoimento convincente para essa palavra, mesmo que seja pura invenção.</p>' +
+        '<textarea id="defInput" placeholder="Digite aqui a sua definição falsa..."></textarea>' +
         '<p class="error-msg" id="writeError" style="display:none;">Escreva algo antes de confirmar.</p>' +
-        '<button class="btn-primary" id="submitDefBtn" style="margin-top:12px;">Confirmar e passar o dispositivo</button>' +
+        '<button class="btn-primary" id="submitDefBtn" style="margin-top:12px;">Registrar depoimento</button>' +
       '</div>'
     );
     screenEl.innerHTML = "";
@@ -537,20 +656,20 @@
       var isOwn = sub.playerIndex === voterIdx;
       return (
         '<button class="def-option' + (isOwn ? " own" : "") + '" data-idx="' + i + '" ' + (isOwn ? "disabled" : "") + '>' +
-          escapeHtml(sub.text) + (isOwn ? ' <span class="muted">(sua definição)</span>' : '') +
+          escapeHtml(sub.text) + (isOwn ? ' <span class="muted">(seu depoimento)</span>' : '') +
         '</button>'
       );
     }).join("");
 
     var card = el(
       '<div class="word-display card">' +
-        '<div class="muted">A palavra é</div>' +
+        '<div class="eyebrow">Palavra sob investigação</div>' +
         '<div class="term">' + escapeHtml(state.currentWord.term) + '</div>' +
       '</div>' +
-      '<div class="card">' +
-        '<p class="progress">Faltam ' + remaining + ' jogador(es) votar</p>' +
+      '<div class="card" data-tab="Veredito">' +
+        '<p class="progress">Faltam ' + remaining + ' voto(s)</p>' +
         '<h3>Vez de: ' + escapeHtml(voter.name) + '</h3>' +
-        '<p class="pass-note" style="margin-bottom:12px;">Qual você acha que é a definição real?</p>' +
+        '<p class="pass-note" style="margin-bottom:12px;">Qual depoimento você acha que é a definição real?</p>' +
         '<div id="optionsWrap">' + optionsHtml + '</div>' +
       '</div>'
     );
@@ -621,12 +740,12 @@
     var scoring = state.lastScoring;
     var itemsHtml = state.submissions.map(function (sub, i) {
       var count = scoring.voteCounts[i];
-      var authorName = sub.isReal ? "Definição real do dicionário" : escapeHtml(state.players[sub.playerIndex].name);
+      var authorName = sub.isReal ? "Definição verdadeira do dicionário" : escapeHtml(state.players[sub.playerIndex].name);
       return (
         '<div class="reveal-item' + (sub.isReal ? " real" : "") + '">' +
           '<div>' + escapeHtml(sub.text) + '</div>' +
           '<div class="meta">' +
-            '<span>' + (sub.isReal ? '<span class="tag">REAL</span> ' : 'Escrita por: ') + (sub.isReal ? '' : authorName) + '</span>' +
+            '<span>' + (sub.isReal ? '<span class="tag">Verdadeiro</span> ' : 'Depoente: ') + (sub.isReal ? '' : authorName) + '</span>' +
             '<span>' + count + ' voto(s)</span>' +
           '</div>' +
         '</div>'
@@ -635,19 +754,19 @@
 
     var drawerName = state.players[state.currentDrawer].name;
     var bonusHtml = scoring.noOneFoundReal
-      ? '<p style="text-align:center; font-weight:700; color:var(--good);">🎉 Ninguém descobriu a definição real! ' + escapeHtml(drawerName) + ' ganha +3 pontos de bônus.</p>'
+      ? '<p class="bonus-note">Ninguém identificou a definição real. ' + escapeHtml(drawerName) + ' ganha +3 pontos de bônus por enganar a todos.</p>'
       : "";
 
     var deltaRows = state.players.map(function (p, i) {
       var d = state.lastScoring.deltas[i];
-      return '<div class="score-row"><span class="name">' + escapeHtml(p.name) + '</span><span>' + (d > 0 ? "+" + d : "0") + ' pontos</span></div>';
+      return '<div class="score-row"><span class="name">' + escapeHtml(p.name) + '</span><span class="pts">' + (d > 0 ? "+" + d : "0") + '</span></div>';
     }).join("");
 
     var card = el(
-      '<div class="card">' +
+      '<div class="card" data-tab="Resultado">' +
         '<h3>Resultado da rodada</h3>' +
         '<div class="word-display" style="padding-top:0;">' +
-          '<div class="term" style="font-size:1.6rem;">' + escapeHtml(state.currentWord.term) + '</div>' +
+          '<div class="term" style="font-size:1.7rem;">' + escapeHtml(state.currentWord.term) + '</div>' +
         '</div>' +
         itemsHtml +
         bonusHtml +
@@ -656,7 +775,7 @@
         '<h3>Pontos ganhos nesta rodada</h3>' +
         deltaRows +
       '</div>' +
-      '<div class="card">' +
+      '<div class="card" data-tab="Placar">' +
         '<h3>Placar geral</h3>' +
         '<div id="scoreboard"></div>' +
         '<button class="btn-primary" id="nextRoundBtn" style="margin-top:14px;">Próxima rodada</button>' +
@@ -698,11 +817,11 @@
     var sorted = state.players.slice().sort(function (a, b) { return b.score - a.score; });
     var winner = sorted[0];
     var card = el(
-      '<div class="card" style="text-align:center;">' +
-        '<h2>🏆 Fim de jogo!</h2>' +
-        '<p style="font-size:1.2rem; font-weight:700; color:var(--accent-dark);">' + escapeHtml(winner.name) + ' venceu!</p>' +
+      '<div class="card" style="text-align:center;" data-tab="Caso encerrado">' +
+        '<h2>Caso encerrado</h2>' +
+        '<p style="font-size:1.15rem; font-weight:700; color:var(--accent);">' + escapeHtml(winner.name) + ' venceu!</p>' +
         '<div id="scoreboardFinal" style="margin-top:12px;"></div>' +
-        '<button class="btn-primary" id="playAgainBtn" style="margin-top:16px;">Jogar novamente</button>' +
+        '<button class="btn-primary" id="playAgainBtn" style="margin-top:16px;">Abrir novo caso</button>' +
       '</div>'
     );
     screenEl.innerHTML = "";
