@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Dicionário Mentiroso</title>
+<style>
+  :root {
+    --bg-1: #2b1055;
+    --bg-2: #7597de;
+    --card: #ffffff;
+    --card-text: #241a3d;
+    --accent: #ff8a3d;
+    --accent-dark: #e0672a;
+    --good: #2fbf71;
+    --bad: #e8543e;
+    --muted: #8a83a3;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  body {
+    background: linear-gradient(160deg, var(--bg-1), var(--bg-2));
+    background-attachment: fixed;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px 14px 60px;
+  }
+  #app {
+    width: 100%;
+    max-width: 520px;
+  }
+  h1.title {
+    text-align: center;
+    font-size: 1.9rem;
+    margin: 6px 0 4px;
+    letter-spacing: 0.5px;
+  }
+  p.subtitle {
+    text-align: center;
+    margin: 0 0 22px;
+    color: rgba(255,255,255,0.85);
+    font-size: 0.95rem;
+  }
+  .card {
+    background: var(--card);
+    color: var(--card-text);
+    border-radius: 18px;
+    padding: 22px 20px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    margin-bottom: 16px;
+  }
+  .card h2 {
+    margin-top: 0;
+    font-size: 1.25rem;
+  }
+  .card h3 {
+    margin: 0 0 10px;
+    font-size: 1rem;
+    color: var(--muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .muted { color: var(--muted); }
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 14px 18px;
+    width: 100%;
+    transition: transform 0.05s ease, opacity 0.15s ease;
+  }
+  button:active { transform: scale(0.98); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:hover:not(:disabled) { background: var(--accent-dark); }
+  .btn-secondary {
+    background: #eee0ff;
+    color: #4b2e83;
+    margin-top: 10px;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 2px dashed #ccc;
+  }
+  .btn-danger {
+    background: #ffe3df;
+    color: var(--bad);
+  }
+  input[type="text"], textarea {
+    width: 100%;
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 2px solid #e3ddf4;
+    outline: none;
+    resize: vertical;
+  }
+  input[type="text"]:focus, textarea:focus {
+    border-color: var(--accent);
+  }
+  textarea { min-height: 90px; }
+  .player-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .player-row input { flex: 1; }
+  .player-row button {
+    width: auto;
+    padding: 10px 14px;
+    background: #ffe3df;
+    color: var(--bad);
+  }
+  .add-row { display: flex; gap: 8px; margin-bottom: 6px; }
+  .add-row input { flex: 1; }
+  .add-row button { width: auto; padding: 12px 18px; }
+  .word-display {
+    text-align: center;
+    padding: 20px 10px 6px;
+  }
+  .word-display .term {
+    font-size: 2.1rem;
+    font-weight: 800;
+    color: var(--accent-dark);
+    word-break: break-word;
+  }
+  .turn-banner {
+    text-align: center;
+    background: #f4effc;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+  .turn-banner .who {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #4b2e83;
+  }
+  .pass-note {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.88rem;
+    margin-top: 4px;
+  }
+  .def-option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: #f8f6fd;
+    border: 2px solid #e3ddf4;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+    font-size: 0.98rem;
+    color: var(--card-text);
+    font-weight: 500;
+  }
+  .def-option:hover:not(:disabled) {
+    border-color: var(--accent);
+  }
+  .def-option.own {
+    background: #f1f1f1;
+    color: var(--muted);
+  }
+  .def-option.selected {
+    border-color: var(--accent);
+    background: #fff1e6;
+  }
+  .reveal-item {
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+    border: 2px solid #e3ddf4;
+  }
+  .reveal-item.real {
+    border-color: var(--good);
+    background: #eafcf3;
+  }
+  .reveal-item .meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 8px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .tag {
+    display: inline-block;
+    background: var(--good);
+    color: #fff;
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  .score-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 4px;
+    border-bottom: 1px solid #eee;
+    font-size: 1rem;
+  }
+  .score-row:last-child { border-bottom: none; }
+  .score-row .name { font-weight: 600; }
+  .score-row .pts {
+    font-weight: 800;
+    color: var(--accent-dark);
+  }
+  .score-row.leader .name::before {
+    content: "👑 ";
+  }
+  .points-delta {
+    font-size: 0.78rem;
+    color: var(--good);
+    margin-left: 8px;
+  }
+  .progress {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .error-msg {
+    color: var(--bad);
+    font-size: 0.88rem;
+    margin: -4px 0 12px;
+  }
+  .footer-note {
+    text-align: center;
+    color: rgba(255,255,255,0.6);
+    font-size: 0.78rem;
+    margin-top: 24px;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <h1 class="title">📖 Dicionário Mentiroso</h1>
+  <p class="subtitle">Sorteie uma palavra, invente uma definição convincente e tente enganar todo mundo.</p>
+  <div id="screen"></div>
+  <p class="footer-note">Passe o dispositivo entre os jogadores quando for solicitado.</p>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- Dictionary ----------
+  var DICTIONARY = [
+    { term: "Lacônico", definition: "Que fala pouco; conciso e breve na expressão." },
+    { term: "Ígneo", definition: "Relativo ao fogo; que tem origem vulcânica, como as rochas ígneas." },
+    { term: "Quimera", definition: "Sonho ou desejo impossível de se realizar; ilusão." },
+    { term: "Pletora", definition: "Excesso ou grande quantidade de alguma coisa." },
+    { term: "Profícuo", definition: "Que traz proveito; vantajoso, útil." },
+    { term: "Sicrano", definition: "Pessoa indeterminada ou não identificada, citada ao lado de fulano e beltrano." },
+    { term: "Chocalho", definition: "Objeto que produz som ao ser agitado, usado por animais ou como brinquedo de bebê." },
+    { term: "Idiossincrasia", definition: "Modo de ser, de reagir ou de pensar próprio e peculiar de uma pessoa." },
+    { term: "Efêmero", definition: "Que dura muito pouco tempo; passageiro, fugaz." },
+    { term: "Alcunha", definition: "Apelido pelo qual uma pessoa é conhecida, além do seu nome verdadeiro." },
+    { term: "Sagaz", definition: "Que percebe e compreende as coisas com facilidade; esperto, astuto." },
+    { term: "Perene", definition: "Que dura por muito tempo, sem interrupção; contínuo, permanente." },
+    { term: "Deletério", definition: "Que causa dano à saúde ou à vida; nocivo, prejudicial." },
+    { term: "Cerne", definition: "Parte central e mais importante de algo; a essência de uma questão." },
+    { term: "Tergiversar", definition: "Usar de rodeios e evasivas; mudar de opinião por conveniência." },
+    { term: "Ojeriza", definition: "Antipatia ou aversão sentida em relação a alguém ou algo." },
+    { term: "Diáfano", definition: "Transparente; que deixa passar a luz quase por completo." },
+    { term: "Impávido", definition: "Que não demonstra medo diante do perigo; destemido, corajoso." },
+    { term: "Prosaico", definition: "Comum e sem originalidade; relativo ao cotidiano, sem encanto poético." },
+    { term: "Ubíquo", definition: "Que está ou parece estar presente em todos os lugares ao mesmo tempo." },
+    { term: "Escrupuloso", definition: "Que age com extremo cuidado e honestidade; muito criterioso." },
+    { term: "Volúvel", definition: "Que muda de opinião ou de sentimento com facilidade; inconstante." },
+    { term: "Perspicaz", definition: "Que percebe as coisas com rapidez e agudeza de raciocínio." },
+    { term: "Nefasto", definition: "Que causa grande dano ou desgraça; funesto, de mau agouro." },
+    { term: "Hodierno", definition: "Relativo aos dias de hoje; atual, dos tempos presentes." },
+    { term: "Anacrônico", definition: "Que está fora do seu tempo; que não condiz com a época atual." },
+    { term: "Displicente", definition: "Que demonstra desinteresse, desatenção ou desprezo por algo." },
+    { term: "Cizânia", definition: "Discórdia ou desentendimento semeado propositalmente entre pessoas." },
+    { term: "Concomitante", definition: "Que ocorre ao mesmo tempo que outra coisa; simultâneo." },
+    { term: "Beócio", definition: "Diz-se de pessoa considerada ignorante, grosseira ou de raciocínio lento." },
+    { term: "Falacioso", definition: "Enganoso; que contém erro proposital para iludir alguém." },
+    { term: "Ledo", definition: "Alegre, contente; termo de uso literário para felicidade." },
+    { term: "Circunlóquio", definition: "Modo indireto e prolixo de dizer algo, usando muitas palavras em rodeio." },
+    { term: "Sinuoso", definition: "Que apresenta curvas; tortuoso, não retilíneo." },
+    { term: "Marasmo", definition: "Estado de apatia, estagnação e falta de vigor ou de movimento." },
+    { term: "Excrescência", definition: "Protuberância ou crescimento anormal; algo supérfluo e indesejado." },
+    { term: "Cognato", definition: "Diz-se de palavra que tem a mesma origem ou raiz de outra." },
+    { term: "Estultice", definition: "Falta de bom senso; tolice, estupidez." },
+    { term: "Pusilânime", definition: "Que tem pouca coragem; medroso, covarde diante das dificuldades." },
+    { term: "Comezinho", definition: "Simples, fácil, corriqueiro; sem grande importância." },
+    { term: "Diatribe", definition: "Discurso ou escrito violento e cheio de críticas contra alguém ou algo." },
+    { term: "Improbidade", definition: "Falta de honestidade e caráter; desonestidade, má-fé." },
+    { term: "Perfunctório", definition: "Feito de modo superficial, sem cuidado ou empenho." },
+    { term: "Recôndito", definition: "Escondido, oculto; de difícil acesso ou compreensão." },
+    { term: "Vetusto", definition: "Muito antigo; que tem grande idade, velho." },
+    { term: "Adrede", definition: "De propósito, de forma planejada; intencionalmente." },
+    { term: "Bonomia", definition: "Qualidade de quem é bondoso e simples no trato com os outros." },
+    { term: "Cônscio", definition: "Que tem plena consciência ou conhecimento de algo." },
+    { term: "Espúrio", definition: "Que não é genuíno ou legítimo; falso, adulterado." },
+    { term: "Frugal", definition: "Que se contenta com pouco; simples e moderado, especialmente na alimentação." }
+  ];
+
+  // ---------- State ----------
+  var state = {
+    phase: "setup",
+    players: [],
+    usedTerms: [],
+    currentDrawer: 0,
+    round: 0,
+    currentWord: null,
+    writeQueue: [],
+    submissions: [],
+    voteQueue: [],
+    votes: {},
+    lastScoring: null
+  };
+
+  var screenEl = document.getElementById("screen");
+
+  function render() {
+    if (state.phase === "setup") renderSetup();
+    else if (state.phase === "round-start") renderRoundStart();
+    else if (state.phase === "writing") renderWriting();
+    else if (state.phase === "voting") renderVoting();
+    else if (state.phase === "reveal") renderReveal();
+    else if (state.phase === "final") renderFinal();
+  }
+
+  function el(html) {
+    var d = document.createElement("div");
+    d.innerHTML = html;
+    return d;
+  }
+
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  function escapeHtml(str) {
+    var d = document.createElement("div");
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  // ---------- Setup screen ----------
+  function renderSetup() {
+    var rowsHtml = state.players.map(function (p, i) {
+      return (
+        '<div class="player-row">' +
+          '<input type="text" value="' + escapeHtml(p.name) + '" data-idx="' + i + '" class="player-name-input">' +
+          '<button data-idx="' + i + '" class="remove-player">✕</button>' +
+        '</div>'
+      );
+    }).join("");
+
+    var card = el(
+      '<div class="card">' +
+        '<h3>Jogadores</h3>' +
+        '<div id="playersList">' + rowsHtml + '</div>' +
+        '<div class="add-row">' +
+          '<input type="text" id="newPlayerInput" placeholder="Nome do jogador">' +
+          '<button class="btn-secondary" id="addPlayerBtn" style="width:auto;">Adicionar</button>' +
+        '</div>' +
+        (state.players.length < 3 ? '<p class="error-msg">Adicione pelo menos 3 jogadores para uma boa votação.</p>' : '') +
+        '<button class="btn-primary" id="startGameBtn" ' + (state.players.length < 3 ? "disabled" : "") + '>Começar Jogo</button>' +
+      '</div>' +
+      '<div class="card">' +
+        '<h3>Como jogar</h3>' +
+        '<p style="font-size:0.92rem; line-height:1.5;">' +
+          '1. Sorteie uma palavra rara do dicionário.<br>' +
+          '2. Cada jogador (menos quem sorteou) escreve uma definição inventada, tentando parecer real.<br>' +
+          '3. Todos votam em qual definição acham que é a verdadeira.<br>' +
+          '4. Ganha pontos quem <b>enganar</b> outros jogadores (voto na sua definição falsa) e quem <b>acertar</b> a definição real.<br>' +
+          '5. Se ninguém votar na definição real, quem sorteou a palavra ganha um bônus por ter escolhido bem!' +
+        '</p>' +
+      '</div>'
+    );
+
+    screenEl.innerHTML = "";
+    screenEl.appendChild(card);
+
+    document.querySelectorAll(".player-name-input").forEach(function (inp) {
+      inp.addEventListener("input", function () {
+        state.players[parseInt(inp.dataset.idx, 10)].name = inp.value;
+      });
+    });
+    document.querySelectorAll(".remove-player").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        state.players.splice(parseInt(btn.dataset.idx, 10), 1);
+        render();
+      });
+    });
+    document.getElementById("addPlayerBtn").addEventListener("click", addPlayerFromInput);
+    document.getElementById("newPlayerInput").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); addPlayerFromInput(); }
+    });
+    var startBtn = document.getElementById("startGameBtn");
+    if (startBtn) startBtn.addEventListener("click", startGame);
+  }
+
+  function addPlayerFromInput() {
+    var inp = document.getElementById("newPlayerInput");
+    var name = inp.value.trim();
+    if (!name) return;
+    state.players.push({ name: name, score: 0 });
+    render();
+  }
+
+  function startGame() {
+    if (state.players.length < 3) return;
+    state.currentDrawer = 0;
+    state.round = 1;
+    state.usedTerms = [];
+    state.phase = "round-start";
+    render();
+  }
+
+  // ---------- Round start ----------
+  function renderRoundStart() {
+    var drawer = state.players[state.currentDrawer];
+    var card = el(
+      '<div class="turn-banner">' +
+        '<div class="muted">Rodada ' + state.round + '</div>' +
+        '<div class="who">' + escapeHtml(drawer.name) + '</div>' +
+        '<div class="muted">é quem vai sortear a palavra</div>' +
+      '</div>' +
+      '<div class="card" style="text-align:center;">' +
+        '<p class="pass-note">Passe o dispositivo para <b>' + escapeHtml(drawer.name) + '</b> e clique abaixo.</p>' +
+        '<button class="btn-primary" id="drawWordBtn">🎲 Sortear Palavra</button>' +
+      '</div>'
+    );
+    screenEl.innerHTML = "";
+    screenEl.appendChild(card);
+    document.getElementById("drawWordBtn").addEventListener("click", drawWord);
+  }
+
+  function drawWord() {
+    var available = DICTIONARY.filter(function (w) { return state.usedTerms.indexOf(w.term) === -1; });
+    if (available.length === 0) {
+      state.usedTerms = [];
+      available = DICTIONARY.slice();
+    }
+    var word = available[Math.floor(Math.random() * available.length)];
+    state.usedTerms.push(word.term);
+    state.currentWord = word;
+
+    state.writeQueue = state.players
+      .map(function (p, i) { return i; })
+      .filter(function (i) { return i !== state.currentDrawer; });
+    state.submissions = [];
+    state.phase = "writing";
+    render();
+  }
+
+  // ---------- Writing phase ----------
+  function renderWriting() {
+    if (state.writeQueue.length === 0) {
+      // move to voting
+      state.submissions.push({ playerIndex: null, text: state.currentWord.definition, isReal: true });
+      state.submissions = shuffle(state.submissions);
+      state.voteQueue = state.players
+        .map(function (p, i) { return i; })
+        .filter(function (i) { return i !== state.currentDrawer; });
+      state.votes = {};
+      state.phase = "voting";
+      render();
+      return;
+    }
+
+    var playerIdx = state.writeQueue[0];
+    var player = state.players[playerIdx];
+    var remaining = state.writeQueue.length;
+
+    var card = el(
+      '<div class="word-display card">' +
+        '<div class="muted">A palavra é</div>' +
+        '<div class="term">' + escapeHtml(state.currentWord.term) + '</div>' +
+      '</div>' +
+      '<div class="card">' +
+        '<p class="progress">Faltam ' + remaining + ' jogador(es) escrever</p>' +
+        '<h3>Vez de: ' + escapeHtml(player.name) + '</h3>' +
+        '<p class="pass-note" style="margin-bottom:12px;">Escreva uma definição inventada, mas convincente, para essa palavra.</p>' +
+        '<textarea id="defInput" placeholder="Digite sua definição falsa aqui..."></textarea>' +
+        '<p class="error-msg" id="writeError" style="display:none;">Escreva algo antes de confirmar.</p>' +
+        '<button class="btn-primary" id="submitDefBtn" style="margin-top:12px;">Confirmar e passar o dispositivo</button>' +
+      '</div>'
+    );
+    screenEl.innerHTML = "";
+    screenEl.appendChild(card);
+
+    document.getElementById("submitDefBtn").addEventListener("click", function () {
+      var val = document.getElementById("defInput").value.trim();
+      if (!val) {
+        document.getElementById("writeError").style.display = "block";
+        return;
+      }
+      state.submissions.push({ playerIndex: playerIdx, text: val, isReal: false });
+      state.writeQueue.shift();
+      render();
+    });
+  }
+
+  // ---------- Voting phase ----------
+  function renderVoting() {
+    if (state.voteQueue.length === 0) {
+      finishVotingAndScore();
+      return;
+    }
+    var voterIdx = state.voteQueue[0];
+    var voter = state.players[voterIdx];
+    var remaining = state.voteQueue.length;
+
+    var optionsHtml = state.submissions.map(function (sub, i) {
+      var isOwn = sub.playerIndex === voterIdx;
+      return (
+        '<button class="def-option' + (isOwn ? " own" : "") + '" data-idx="' + i + '" ' + (isOwn ? "disabled" : "") + '>' +
+          escapeHtml(sub.text) + (isOwn ? ' <span class="muted">(sua definição)</span>' : '') +
+        '</button>'
+      );
+    }).join("");
+
+    var card = el(
+      '<div class="word-display card">' +
+        '<div class="muted">A palavra é</div>' +
+        '<div class="term">' + escapeHtml(state.currentWord.term) + '</div>' +
+      '</div>' +
+      '<div class="card">' +
+        '<p class="progress">Faltam ' + remaining + ' jogador(es) votar</p>' +
+        '<h3>Vez de: ' + escapeHtml(voter.name) + '</h3>' +
+        '<p class="pass-note" style="margin-bottom:12px;">Qual você acha que é a definição real?</p>' +
+        '<div id="optionsWrap">' + optionsHtml + '</div>' +
+      '</div>'
+    );
+    screenEl.innerHTML = "";
+    screenEl.appendChild(card);
+
+    document.querySelectorAll("#optionsWrap .def-option").forEach(function (btn) {
+      if (btn.disabled) return;
+      btn.addEventListener("click", function () {
+        var subIdx = parseInt(btn.dataset.idx, 10);
+        state.votes[voterIdx] = subIdx;
+        state.voteQueue.shift();
+        render();
+      });
+    });
+  }
+
+  function finishVotingAndScore() {
+    // count votes per submission
+    var voteCounts = state.submissions.map(function () { return 0; });
+    Object.keys(state.votes).forEach(function (voterIdxStr) {
+      var subIdx = state.votes[voterIdxStr];
+      voteCounts[subIdx]++;
+    });
+
+    var deltas = {}; // playerIndex -> points gained this round
+    state.players.forEach(function (p, i) { deltas[i] = 0; });
+
+    var realSubIdx = -1;
+    state.submissions.forEach(function (sub, i) {
+      if (sub.isReal) realSubIdx = i;
+      else if (voteCounts[i] > 0) {
+        deltas[sub.playerIndex] += voteCounts[i]; // 1 point per vote fooled
+      }
+    });
+
+    // voters who correctly picked the real definition
+    Object.keys(state.votes).forEach(function (voterIdxStr) {
+      var voterIdx = parseInt(voterIdxStr, 10);
+      var subIdx = state.votes[voterIdxStr];
+      if (subIdx === realSubIdx) {
+        deltas[voterIdx] += 2;
+      }
+    });
+
+    // bonus for drawer if nobody found the real definition
+    var noOneFoundReal = realSubIdx !== -1 && voteCounts[realSubIdx] === 0;
+    if (noOneFoundReal) {
+      deltas[state.currentDrawer] += 3;
+    }
+
+    Object.keys(deltas).forEach(function (idxStr) {
+      state.players[parseInt(idxStr, 10)].score += deltas[idxStr];
+    });
+
+    state.lastScoring = {
+      voteCounts: voteCounts,
+      realSubIdx: realSubIdx,
+      deltas: deltas,
+      noOneFoundReal: noOneFoundReal
+    };
+    state.phase = "reveal";
+    render();
+  }
+
+  // ---------- Reveal phase ----------
+  function renderReveal() {
+    var scoring = state.lastScoring;
+    var itemsHtml = state.submissions.map(function (sub, i) {
+      var count = scoring.voteCounts[i];
+      var authorName = sub.isReal ? "Definição real do dicionário" : escapeHtml(state.players[sub.playerIndex].name);
+      return (
+        '<div class="reveal-item' + (sub.isReal ? " real" : "") + '">' +
+          '<div>' + escapeHtml(sub.text) + '</div>' +
+          '<div class="meta">' +
+            '<span>' + (sub.isReal ? '<span class="tag">REAL</span> ' : 'Escrita por: ') + (sub.isReal ? '' : authorName) + '</span>' +
+            '<span>' + count + ' voto(s)</span>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join("");
+
+    var drawerName = state.players[state.currentDrawer].name;
+    var bonusHtml = scoring.noOneFoundReal
+      ? '<p style="text-align:center; font-weight:700; color:var(--good);">🎉 Ninguém descobriu a definição real! ' + escapeHtml(drawerName) + ' ganha +3 pontos de bônus.</p>'
+      : "";
+
+    var deltaRows = state.players.map(function (p, i) {
+      var d = state.lastScoring.deltas[i];
+      return '<div class="score-row"><span class="name">' + escapeHtml(p.name) + '</span><span>' + (d > 0 ? "+" + d : "0") + ' pontos</span></div>';
+    }).join("");
+
+    var card = el(
+      '<div class="card">' +
+        '<h3>Resultado da rodada</h3>' +
+        '<div class="word-display" style="padding-top:0;">' +
+          '<div class="term" style="font-size:1.6rem;">' + escapeHtml(state.currentWord.term) + '</div>' +
+        '</div>' +
+        itemsHtml +
+        bonusHtml +
+      '</div>' +
+      '<div class="card">' +
+        '<h3>Pontos ganhos nesta rodada</h3>' +
+        deltaRows +
+      '</div>' +
+      '<div class="card">' +
+        '<h3>Placar geral</h3>' +
+        '<div id="scoreboard"></div>' +
+        '<button class="btn-primary" id="nextRoundBtn" style="margin-top:14px;">Próxima rodada</button>' +
+        '<button class="btn-danger" id="endGameBtn">Encerrar jogo</button>' +
+      '</div>'
+    );
+    screenEl.innerHTML = "";
+    screenEl.appendChild(card);
+    renderScoreboardInto(document.getElementById("scoreboard"));
+
+    document.getElementById("nextRoundBtn").addEventListener("click", function () {
+      state.currentDrawer = (state.currentDrawer + 1) % state.players.length;
+      state.round++;
+      state.phase = "round-start";
+      render();
+    });
+    document.getElementById("endGameBtn").addEventListener("click", function () {
+      state.phase = "final";
+      render();
+    });
+  }
+
+  function renderScoreboardInto(container) {
+    var sorted = state.players.slice().sort(function (a, b) { return b.score - a.score; });
+    var maxScore = sorted.length ? sorted[0].score : 0;
+    container.innerHTML = sorted.map(function (p) {
+      var isLeader = p.score === maxScore && maxScore > 0;
+      return (
+        '<div class="score-row' + (isLeader ? " leader" : "") + '">' +
+          '<span class="name">' + escapeHtml(p.name) + '</span>' +
+          '<span class="pts">' + p.score + '</span>' +
+        '</div>'
+      );
+    }).join("");
+  }
+
+  // ---------- Final screen ----------
+  function renderFinal() {
+    var sorted = state.players.slice().sort(function (a, b) { return b.score - a.score; });
+    var winner = sorted[0];
+    var card = el(
+      '<div class="card" style="text-align:center;">' +
+        '<h2>🏆 Fim de jogo!</h2>' +
+        '<p style="font-size:1.2rem; font-weight:700; color:var(--accent-dark);">' + escapeHtml(winner.name) + ' venceu!</p>' +
+        '<div id="scoreboardFinal" style="margin-top:12px;"></div>' +
+        '<button class="btn-primary" id="playAgainBtn" style="margin-top:16px;">Jogar novamente</button>' +
+      '</div>'
+    );
+    screenEl.innerHTML = "";
+    screenEl.appendChild(card);
+    renderScoreboardInto(document.getElementById("scoreboardFinal"));
+    document.getElementById("playAgainBtn").addEventListener("click", function () {
+      state.players.forEach(function (p) { p.score = 0; });
+      state.usedTerms = [];
+      state.round = 0;
+      state.phase = "setup";
+      render();
+    });
+  }
+
+  // ---------- Init ----------
+  state.players = [
+    { name: "Jogador 1", score: 0 },
+    { name: "Jogador 2", score: 0 },
+    { name: "Jogador 3", score: 0 }
+  ];
+  render();
+})();
+</script>
+</body>
+</html>
