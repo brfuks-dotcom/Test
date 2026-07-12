@@ -108,9 +108,9 @@
     </div>
   </div>
   <div class="header-stats">
-    <div class="hstat"><div class="hstat-val">25</div><div class="hstat-lbl">Partidas</div></div>
+    <div class="hstat"><div class="hstat-val">35</div><div class="hstat-lbl">Partidas</div></div>
     <div class="hstat"><div class="hstat-val">13</div><div class="hstat-lbl">Jogadores</div></div>
-    <div class="hstat"><div class="hstat-val">346</div><div class="hstat-lbl">Recorde</div></div>
+    <div class="hstat"><div class="hstat-val">371</div><div class="hstat-lbl">Recorde</div></div>
     <div class="hstat"><div class="hstat-val" id="hstat-avg">—</div><div class="hstat-lbl">Média Geral</div></div>
   </div>
 </header>
@@ -119,7 +119,7 @@
   <div class="kpi"><div class="kpi-val c-purple" id="kpi-wins-bruno">—</div><div class="kpi-lbl">Vitórias Bruno</div><div class="kpi-sub" id="kpi-wr-bruno">—</div></div>
   <div class="kpi"><div class="kpi-val c-blue" id="kpi-wins-brenno">—</div><div class="kpi-lbl">Vitórias Brenno</div><div class="kpi-sub" id="kpi-wr-brenno">—</div></div>
   <div class="kpi"><div class="kpi-val c-orange" id="kpi-wins-amanda">—</div><div class="kpi-lbl">Vitórias Amanda</div><div class="kpi-sub" id="kpi-wr-amanda">—</div></div>
-  <div class="kpi"><div class="kpi-val c-yellow">Y=150</div><div class="kpi-lbl">Yatzi + Bônus</div><div class="kpi-sub">Gi (328) &amp; Amanda (346)</div></div>
+  <div class="kpi"><div class="kpi-val c-yellow">Y=150</div><div class="kpi-lbl">Yatzi + Bônus</div><div class="kpi-sub">Gi(328), Amanda(371), Bruno(312)</div></div>
   <div class="kpi"><div class="kpi-val c-green" id="kpi-yatzi-total">—</div><div class="kpi-lbl">Total Yatzis</div><div class="kpi-sub">em todas as partidas</div></div>
   <div class="kpi"><div class="kpi-val c-red" id="kpi-low">—</div><div class="kpi-lbl">Menor placar</div><div class="kpi-sub" id="kpi-low-sub">—</div></div>
 </div>
@@ -412,6 +412,57 @@ const GAMES = [
     {p:'Brenno',d1:1, d2:2, d3:6, d4:12,d5:5, d6:18,T:24,Q:26,F:25,Sp:30,Sm:40,Y:0,  X:23,total:212},
     {p:'Joe',   d1:2, d2:6, d3:3, d4:8, d5:5, d6:18,T:24,Q:24,F:25,Sp:30,Sm:0, Y:50, X:24,total:219},
   ]},
+  {id:26,scores:[
+    {p:'Bruno', d1:2, d2:2, d3:12,d4:16,d5:5, d6:12,T:28,Q:25,F:25,Sp:0, Sm:40,Y:0,  X:22,total:189},
+    {p:'Amanda',d1:3, d2:2, d3:12,d4:16,d5:20,d6:12,T:28,Q:19,F:25,Sp:0, Sm:0, Y:50, X:18,total:205},
+    {p:'Brenno',d1:1, d2:4, d3:6, d4:12,d5:20,d6:18,T:26,Q:29,F:25,Sp:0, Sm:40,Y:50, X:25,total:256},
+  ]},
+  {id:27,scores:[
+    {p:'Brenno',d1:2, d2:4, d3:3, d4:4, d5:10,d6:18,T:27,Q:29,F:25,Sp:30,Sm:0, Y:0,  X:18,total:170},
+    {p:'Bruno', d1:2, d2:4, d3:9, d4:4, d5:10,d6:12,T:27,Q:17,F:25,Sp:30,Sm:40,Y:50, X:23,total:253},
+    {p:'Amanda',d1:2, d2:4, d3:6, d4:4, d5:10,d6:18,T:28,Q:29,F:25,Sp:30,Sm:0, Y:0,  X:22,total:178},
+  ]},
+  {id:28,scores:[
+    {p:'Bruno', d1:3, d2:2, d3:3, d4:4, d5:10,d6:12,T:22,Q:22,F:0, Sp:30,Sm:0, Y:0,  X:19,total:127},
+    {p:'Amanda',d1:2, d2:2, d3:6, d4:12,d5:20,d6:6, T:23,Q:0, F:25,Sp:0, Sm:40,Y:50, X:19,total:205},
+  ]},
+  {id:29,scores:[
+    {p:'Bruno', d1:2, d2:2, d3:3, d4:4, d5:10,d6:18,T:22,Q:23,F:25,Sp:0, Sm:0, Y:0,  X:20,total:129},
+    {p:'Amanda',d1:1, d2:4, d3:3, d4:4, d5:10,d6:18,T:25,Q:17,F:25,Sp:30,Sm:40,Y:0,  X:23,total:200},
+    {p:'Brenno',d1:1, d2:8, d3:9, d4:16,d5:15,d6:18,T:23,Q:25,F:25,Sp:30,Sm:40,Y:0,  X:22,total:232},
+    {p:'Rafa',  d1:2, d2:4, d3:9, d4:12,d5:15,d6:24,T:20,Q:28,F:25,Sp:0, Sm:40,Y:0,  X:24,total:203},
+  ]},
+  {id:30,scores:[
+    {p:'Bruno', d1:3, d2:2, d3:12,d4:16,d5:10,d6:12,T:23,Q:21,F:25,Sp:30,Sm:0, Y:0,  X:14,total:168},
+    {p:'Amanda',d1:2, d2:2, d3:9, d4:12,d5:15,d6:18,T:23,Q:25,F:25,Sp:30,Sm:40,Y:150,X:20,total:371},
+    {p:'Brenno',d1:2, d2:2, d3:12,d4:12,d5:10,d6:18,T:27,Q:0, F:25,Sp:0, Sm:0, Y:0,  X:22,total:130},
+  ]},
+  {id:31,scores:[
+    {p:'Bruno', d1:1, d2:2, d3:6, d4:12,d5:15,d6:24,T:27,Q:27,F:25,Sp:0, Sm:0, Y:0,  X:23,total:162},
+    {p:'Amanda',d1:2, d2:4, d3:6, d4:12,d5:15,d6:12,T:20,Q:0, F:25,Sp:30,Sm:40,Y:0,  X:15,total:181},
+    {p:'Brenno',d1:2, d2:2, d3:6, d4:12,d5:10,d6:18,T:25,Q:21,F:25,Sp:30,Sm:40,Y:0,  X:20,total:211},
+  ]},
+  {id:32,scores:[
+    {p:'Bruno', d1:2, d2:2, d3:3, d4:16,d5:15,d6:6, T:23,Q:26,F:25,Sp:30,Sm:40,Y:0,  X:18,total:206},
+    {p:'Amanda',d1:2, d2:4, d3:3, d4:12,d5:10,d6:12,T:20,Q:26,F:25,Sp:0, Sm:0, Y:0,  X:17,total:131},
+    {p:'Brenno',d1:1, d2:2, d3:9, d4:12,d5:15,d6:18,T:26,Q:28,F:25,Sp:30,Sm:40,Y:0,  X:24,total:230},
+  ]},
+  {id:33,scores:[
+    {p:'Brenno',d1:3, d2:4, d3:6, d4:4, d5:10,d6:6, T:20,Q:0, F:25,Sp:30,Sm:0, Y:0,  X:16,total:124},
+    {p:'Bruno', d1:1, d2:6, d3:6, d4:8, d5:20,d6:18,T:24,Q:22,F:25,Sp:30,Sm:40,Y:50, X:27,total:277},
+    {p:'Rafa',  d1:1, d2:2, d3:3, d4:12,d5:10,d6:18,T:22,Q:11,F:25,Sp:30,Sm:40,Y:0,  X:27,total:201},
+    {p:'Amanda',d1:4, d2:6, d3:6, d4:8, d5:10,d6:18,T:22,Q:26,F:25,Sp:30,Sm:40,Y:50, X:23,total:268},
+  ]},
+  {id:34,scores:[
+    {p:'Brenno',d1:2, d2:2, d3:3, d4:4, d5:5, d6:18,T:27,Q:21,F:25,Sp:0, Sm:40,Y:50, X:23,total:220},
+    {p:'Bruno', d1:1, d2:2, d3:6, d4:16,d5:15,d6:6, T:0, Q:24,F:25,Sp:30,Sm:40,Y:50, X:9, total:224},
+    {p:'Amanda',d1:2, d2:8, d3:6, d4:16,d5:15,d6:18,T:24,Q:29,F:25,Sp:30,Sm:0, Y:0,  X:13,total:186},
+  ]},
+  {id:35,scores:[
+    {p:'Brenno',d1:1, d2:4, d3:3, d4:16,d5:15,d6:24,T:24,Q:22,F:25,Sp:30,Sm:40,Y:50, X:26,total:280},
+    {p:'Bruno', d1:1, d2:2, d3:3, d4:8, d5:5, d6:18,T:21,Q:22,F:25,Sp:0, Sm:40,Y:150,X:17,total:312},
+    {p:'Amanda',d1:2, d2:2, d3:12,d4:12,d5:10,d6:12,T:27,Q:26,F:25,Sp:30,Sm:0, Y:0,  X:23,total:181},
+  ]},
 ];
 
 function getPlayerStats() {
@@ -506,8 +557,8 @@ function initChartHeatmap() {
 function initInsights() {
   const insights = [
     {icon:'👑', text:'<strong>Bruno</strong> é o maior vencedor absoluto com <strong>'+PSTATS['Bruno'].wins+' vitórias</strong> em '+PSTATS['Bruno'].games+' partidas ('+PSTATS['Bruno'].wr+'% de aproveitamento).'},
-    {icon:'🎲', text:'<strong>Amanda</strong> detém o maior score individual com <strong>346 pontos</strong> na Partida 19, após obter <strong>2 Yatzis + bônus de 50 pts</strong> (Y=150)!'},
-    {icon:'🌟', text:'<strong>Gi</strong> foi o único convidado a superar <strong>300 pontos</strong> (328 pts na Partida 18) também com 2 Yatzis + bônus — 2ª maior pontuação de todos os tempos.'},
+    {icon:'🎲', text:'<strong>Amanda</strong> detém o maior score individual com <strong>371 pontos</strong> na Partida 30, após obter <strong>2 Yatzis + bônus de 50 pts</strong> (Y=150) — novo recorde!'},
+    {icon:'🌟', text:'<strong>Gi</strong> foi o único convidado a superar <strong>300 pontos</strong> (328 pts na Partida 18) com 2 Yatzis + bônus — 3ª maior pontuação de todos os tempos.'},
     {icon:'📈', text:'<strong>Brenno</strong> tem a melhor consistência entre o trio principal — média de <strong>'+PSTATS['Brenno'].avg+' pts</strong>.'},
     {icon:'💥', text:'A partida mais emocionante foi a 3: Brenno 239 vs Amanda 237 — diferença de apenas <strong>2 pontos</strong>!'},
     {icon:'🎯', text:'<strong>Trinca (T)</strong> é a categoria mais diferenciadora — jogadores com T>25 vencem com muito mais frequência.'},
@@ -702,13 +753,14 @@ function initRecords() {
   const sorted = [...allScores].sort((a,b)=>b.total-a.total);
   const sortedAsc = [...allScores].filter(s=>!(s.game===11&&s.p==='Rafa')).sort((a,b)=>a.total-b.total);
   const recs = [
-    {icon:'🥇',val:'346',lbl:'Maior Pontuação',sub:'Amanda — Partida 19 (3x Yatzi!)'},
-    {icon:'💥',val:'328',lbl:'2ª Maior Pontuação',sub:'Gi — Partida 18 (3x Yatzi!)'},
+    {icon:'🥇',val:'371',lbl:'Maior Pontuação',sub:'Amanda — Partida 30 (Y=150 + bônus)'},
+    {icon:'🥈',val:'346',lbl:'2ª Maior Pontuação',sub:'Amanda — Partida 19 (Y=150)'},
+    {icon:'🥉',val:'328',lbl:'3ª Maior Pontuação',sub:'Gi — Partida 18 (Y=150)'},
     {icon:'🎲',val:'150',lbl:'Record de Yatzi',sub:'2 Yatzis + bônus (Y=150)'},
     {icon:'📉',val:sortedAsc[0].total,lbl:'Menor Pontuação',sub:`${sortedAsc[0].p} — P${sortedAsc[0].game}`},
-    {icon:'🔥',val:'282',lbl:'Melhor do Bruno',sub:'Partida 14'},
-    {icon:'💜',val:'252',lbl:'Melhor do Brenno',sub:'Partida 2'},
-    {icon:'🧡',val:PSTATS['Amanda'].max,lbl:'Melhor da Amanda',sub:'Partida 19'},
+    {icon:'🔥',val:'312',lbl:'Melhor do Bruno',sub:'Partida 35 (Y=150!)'},
+    {icon:'💜',val:'280',lbl:'Melhor do Brenno',sub:'Partida 35'},
+    {icon:'🧡',val:PSTATS['Amanda'].max,lbl:'Melhor da Amanda',sub:'Partida 30 (Y=150!)'},
     {icon:'👥',val:'8',lbl:'Maior Mesa',sub:'Partida 18 — 8 jogadores'},
     {icon:'⚔️',val:'2',lbl:'Menor Margem',sub:'Brenno 239 vs Amanda 237 (P3)'},
     {icon:'📊',val:PSTATS['Bruno'].avg,lbl:'Média Bruno',sub:`em ${PSTATS['Bruno'].games} jogos`},
@@ -726,11 +778,11 @@ function initRecords() {
     document.getElementById('lowScoresBody').innerHTML += `<tr><td>${i+1}</td><td style="color:${COLORS[s.p]||'#fff'};font-weight:700">${s.p}</td><td><span class="badge bg-blue">P${s.game}</span></td><td class="num" style="color:var(--red)">${s.total}</td></tr>`;
   });
   const facts = [
-    {icon:'🎲', text:'<strong>Yatzi + Bônus (150 pts):</strong> Gi (P18) e Amanda (P19) são os únicos com 2 Yatzis + bônus de 50 pts numa partida — feito raríssimo!'},
-    {icon:'🔥', text:'<strong>Bruno</strong> conseguiu Yatzi em 7 partidas diferentes — o jogador mais "afortunado" com dados iguais.'},
-    {icon:'📈', text:'Partidas 13 e 14 foram as melhores de Bruno: 278 e 282 pts — média de <strong>280 pts</strong> no dueto!'},
+    {icon:'🎲', text:'<strong>Yatzi + Bônus (150 pts):</strong> Gi (P18), Amanda (P19 e P30) e Bruno (P35) são os únicos com 2 Yatzis + bônus de 50 pts numa partida!'},
+    {icon:'🔥', text:'<strong>Bruno</strong> conseguiu Yatzi em múltiplas partidas — incluindo seu primeiro Y=150 na Partida 35 que valeu <strong>312 pts</strong>!'},
+    {icon:'📈', text:'Amanda quebrou o recorde geral na Partida 30 com <strong>371 pts</strong> (Y=150), superando seu próprio recorde de 346 pts da Partida 19!'},
     {icon:'💔', text:'Bruno teve sua pior sequência nas Partidas 17 e 20 com 93 e 96 pts — bem abaixo de sua média de '+PSTATS['Bruno'].avg+' pts.'},
-    {icon:'👑', text:'Amanda é a única do trio a ter feito <strong>2 Yatzis + bônus</strong> em uma partida e atingido os <strong>300+ pontos</strong>.'},
+    {icon:'👑', text:'Amanda é a única do trio a ter feito <strong>2 Yatzis + bônus</strong> em duas partidas diferentes (P19 e P30) atingindo 300+ pts nas duas!'},
     {icon:'🏆', text:'Tha foi a revelação dos convidados: venceu a P17 com 233 pts e nunca ficou abaixo de 155 pts em 6 jogos.'},
     {icon:'📊', text:'Quadra (Q) teve a maior variância — alguns marcam 29 (quase máximo) enquanto outros ficam em 0.'},
     {icon:'🎯', text:'A Partida 8 foi especial: Bruno marcou 25 pts nos "5s" — máximo absoluto possível (5×5=25).'},
