@@ -172,8 +172,31 @@
     color:var(--text);text-align:center;font-size:12px;padding:3px 2px;font-family:inherit;-moz-appearance:textfield
   }
   .slot .sc:disabled{opacity:.8}
+  .slot .sc:focus{border-color:var(--blue);outline:none;box-shadow:0 0 0 2px rgba(59,167,255,.2)}
   .slot .sc::-webkit-outer-spin-button,.slot .sc::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-  .slot .tick{font-size:13px;width:14px;text-align:center;flex:0 0 14px}
+
+  /* botão explícito de "este venceu" */
+  .pick{
+    width:27px;height:27px;flex:0 0 27px;border-radius:50%;padding:0;font-size:13px;font-weight:900;
+    border:1.5px solid var(--border2);background:var(--surface2);color:var(--muted);
+    display:grid;place-items:center;line-height:1
+  }
+  .pick:hover{border-color:var(--green);color:var(--green);background:rgba(34,197,94,.16);transform:scale(1.08)}
+  .slot.win .pick{background:var(--green);border-color:var(--green);color:#06210f}
+  .slot.lose .pick{opacity:.5}
+  .ro .pick{pointer-events:none}
+
+  /* faixa de instruções acima da chave */
+  .howto{
+    display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);
+    border-left:3px solid var(--green);border-radius:11px;padding:10px 14px;margin-bottom:16px;
+    font-size:12.5px;color:var(--muted);line-height:1.55
+  }
+  .howto b{color:var(--text)}
+  .howto .k{
+    display:inline-grid;place-items:center;width:19px;height:19px;border-radius:50%;background:var(--green);
+    color:#06210f;font-weight:900;font-size:11px;vertical-align:-4px
+  }
 
   /* conectores */
   .round-wrap{position:relative}
@@ -379,6 +402,7 @@ let tab = 'bracket';
 let openEntry = null;      // id do registro expandido no histórico
 let pendingPhoto = null;   // foto escolhida para o próximo participante
 let photoTarget = null;    // id do participante que está trocando de foto
+let focusBack = null;      // campo de placar que recupera o foco após redesenhar
 
 /* ============================================================
    Persistência
@@ -581,6 +605,20 @@ function setScore(r, i, which, val){
   save();
 }
 
+/* Com os dois placares preenchidos e diferentes, quem fez mais pontos vence
+   e avança sozinho. Devolve true se o vencedor mudou (aí a tela é redesenhada). */
+function applyScore(r, i){
+  const m = (r === 'third') ? state.thirdMatch : state.rounds[r][i];
+  if(!m || !m.a || !m.b) return false;
+  const na = parseInt(m.sa, 10), nb = parseInt(m.sb, 10);
+  if(isNaN(na) || isNaN(nb) || na === nb) return false;
+  const w = na > nb ? m.a : m.b;
+  if(m.winner === w) return false;
+  m.winner = w;
+  if(r !== 'third') recompute();
+  return true;
+}
+
 /* ============================================================
    Histórico
    ============================================================ */
@@ -702,16 +740,20 @@ function slotHTML(m, r, i, which, ctx){
             <span class="nm">${txt}</span></div>`;
   }
   const decided = !!m.winner;
-  const cls = decided ? (m.winner === id ? 'win' : 'lose') : '';
+  const isWinner = decided && m.winner === id;
+  const cls = decided ? (isWinner ? 'win' : 'lose') : '';
   const sc  = which === 'a' ? m.sa : m.sb;
-  const attrs = ctx.readOnly ? '' : `data-r="${r}" data-i="${i}" data-w="${which}" title="Clique para marcar como vencedor"`;
+  const attrs = ctx.readOnly ? '' : `data-r="${r}" data-i="${i}" data-w="${which}"`;
   return `
     <div class="slot ${cls}" ${attrs}>
       ${avatar(p, 32)}
       <span class="nm">${esc(p.name)}</span>
-      <span class="tick">${decided && m.winner === id ? '✅' : ''}</span>
-      <input class="sc" type="number" inputmode="numeric" placeholder="–" value="${esc(sc || '')}"
-             ${ctx.readOnly ? 'disabled' : `data-sr="${r}" data-si="${i}" data-sw="${which}"`} title="Placar (opcional)">
+      <input class="sc" type="text" inputmode="numeric" maxlength="3" placeholder="–" value="${esc(sc || '')}"
+             ${ctx.readOnly ? 'disabled' : `data-sr="${r}" data-si="${i}" data-sw="${which}"`}
+             title="Placar — quem fizer mais pontos avança">
+      <button type="button" class="pick" ${ctx.readOnly ? 'disabled' : ''}
+              title="${isWinner ? 'Vencedor — clique para desmarcar' : 'Marcar como vencedor'}"
+              aria-label="Marcar ${esc(p.name)} como vencedor">✓</button>
     </div>`;
 }
 function matchHTML(m, r, i, label, ctx){
@@ -792,6 +834,15 @@ function panelBracket(){
           </button>
         </div>
       </div>`;
+  }
+
+  if(!champ){
+    html += `<div class="howto">
+      <span style="font-size:20px">👆</span>
+      <span>Para avançar a chave: toque no <span class="k">✓</span> do vencedor da partida —
+      <b>ou digite o placar dos dois</b>, que quem fizer mais pontos avança sozinho.
+      Tocar de novo no <span class="k">✓</span> desfaz o resultado.</span>
+    </div>`;
   }
 
   html += bracketHTML(R, state.thirdMatch, state.participants, false);
@@ -892,6 +943,12 @@ function render(){
   renderSetup();
   const panel = document.getElementById('panel');
   panel.innerHTML = tab === 'history' ? panelHistory() : tab === 'rank' ? panelRank() : panelBracket();
+
+  if(focusBack){
+    const el = panel.querySelector(`.sc[data-sr="${focusBack.sr}"][data-si="${focusBack.si}"][data-sw="${focusBack.sw}"]`);
+    if(el){ el.focus(); const v = el.value; try{ el.setSelectionRange(v.length, v.length); }catch(err){} }
+    focusBack = null;
+  }
 }
 
 /* ============================================================
@@ -1018,11 +1075,20 @@ document.getElementById('panel').addEventListener('click', e => {
   setWinner(r, Number(slot.dataset.i), slot.dataset.w);
 });
 
-// placares
+// placares — digitar os dois já define quem avança
 document.getElementById('panel').addEventListener('input', e => {
   if(!e.target.classList.contains('sc') || e.target.disabled) return;
-  const r = e.target.dataset.sr === 'third' ? 'third' : Number(e.target.dataset.sr);
-  setScore(r, Number(e.target.dataset.si), e.target.dataset.sw, e.target.value);
+  const clean = e.target.value.replace(/[^\d]/g, '');
+  if(clean !== e.target.value) e.target.value = clean;
+
+  const sr = e.target.dataset.sr, si = Number(e.target.dataset.si), sw = e.target.dataset.sw;
+  const r = sr === 'third' ? 'third' : Number(sr);
+  setScore(r, si, sw, clean);
+
+  if(applyScore(r, si)){
+    focusBack = {sr, si, sw};        // redesenhar tira o foco do campo; devolvemos depois
+    save(); render();
+  }
 });
 
 /* backup do histórico */
