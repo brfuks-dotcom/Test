@@ -6,7 +6,7 @@ Páginas estáticas publicadas via GitHub Pages (deploy automático a cada push 
 
 Aplicativo web para montar torneios eliminatórios dos jogos do Nintendo Switch Sports.
 
-- **Modalidades**: Boliche, Tênis, Badminton, Vôlei, Futebol, Espada e Golfe (+ campo livre para qualquer outro jogo).
+- **Modalidades**: as 8 do jogo — Boliche, Tênis, Badminton, Vôlei, Futebol, Espada (Chambara), Golfe e Basquete — mais um campo livre para qualquer outro jogo.
 - **Participantes**: nome + foto opcional — toque no quadrado 📷 para escolher da galeria ou tirar na hora no celular. A imagem é recortada e redimensionada no próprio navegador; sem foto, gera um avatar com as iniciais. Dá para trocar a foto depois clicando no avatar de quem já está na lista.
 - **Sorteio aleatório** das chaves. Quando o número de participantes não é potência de 2, alguns recebem **BYE** e avançam direto.
 - **Avanço automático**: clique no vencedor de cada partida e ele sobe para a rodada seguinte. Clicar de novo desfaz o resultado e invalida as fases posteriores que dependiam dele.
