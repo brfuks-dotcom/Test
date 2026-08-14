@@ -74,6 +74,55 @@
   .sport .ico{font-size:26px;display:block;margin-bottom:4px;line-height:1}
   .sport .nm{font-size:11px;font-weight:700}
 
+  /* ---------- Formato da competição ---------- */
+  .formats{display:flex;flex-direction:column;gap:8px}
+  .fmt{
+    display:flex;align-items:center;gap:11px;width:100%;text-align:left;font-family:inherit;color:var(--text);
+    background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;cursor:pointer
+  }
+  .fmt:hover{border-color:var(--border2);background:#26325c}
+  .fmt.active{border-color:var(--blue);background:linear-gradient(135deg,rgba(59,167,255,.22),rgba(34,211,238,.08))}
+  .fmt .fico{font-size:20px;flex:0 0 24px;text-align:center}
+  .fmt b{display:block;font-size:12.5px}
+  .fmt i{display:block;font-size:11px;color:var(--muted);font-style:normal;line-height:1.4;margin-top:1px}
+
+  /* ---------- Placar corrido ---------- */
+  .board{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start}
+  @media(max-width:1150px){.board{grid-template-columns:1fr}}
+  .bsec h3{
+    font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);
+    font-weight:700;margin-bottom:10px
+  }
+  .brow{
+    display:flex;align-items:center;gap:11px;background:var(--surface2);border:1px solid var(--border);
+    border-radius:12px;padding:9px 12px;margin-bottom:8px
+  }
+  .brow.lead{border-color:rgba(251,191,36,.55);background:linear-gradient(90deg,rgba(251,191,36,.16),var(--surface2))}
+  .brow .ord{
+    font-size:11px;color:var(--muted);font-weight:800;width:20px;flex:0 0 20px;text-align:center
+  }
+  .brow .nm{flex:1;font-weight:700;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .brow .pts{
+    width:74px;flex:0 0 74px;background:var(--bg2);border:1px solid var(--border);border-radius:9px;
+    color:var(--text);text-align:center;font-size:15px;font-weight:800;padding:7px 4px;font-family:inherit
+  }
+  .brow .pts:focus{border-color:var(--blue);outline:none;box-shadow:0 0 0 3px rgba(59,167,255,.18)}
+  .brow .pts:disabled{opacity:.85}
+
+  .stand{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:12px}
+  .srow{display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid var(--border)}
+  .srow:last-child{border-bottom:none}
+  .srow .pos{font-size:13px;font-weight:800;color:var(--muted);width:26px;flex:0 0 26px}
+  .srow.p1 .pos,.srow.p2 .pos,.srow.p3 .pos{font-size:17px}
+  .srow .nm{flex:1;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .srow .sc{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
+  .srow.p1{background:linear-gradient(90deg,rgba(251,191,36,.16),transparent);border-radius:9px}
+  .srow .sc.none{color:var(--muted);font-weight:600;font-size:12px}
+  .tie{
+    background:rgba(251,191,36,.14);border:1px solid rgba(251,191,36,.45);border-radius:11px;
+    padding:10px 13px;margin-bottom:14px;font-size:12.5px
+  }
+
   /* aviso quando o JavaScript não roda (ex.: pré-visualização que bloqueia scripts) */
   .warn{
     background:linear-gradient(135deg,rgba(230,0,18,.25),rgba(251,191,36,.15));
@@ -294,7 +343,7 @@
     <div class="brand-icon">🏆</div>
     <div>
       <h1>Chaveamento Nintendo Switch Sports</h1>
-      <p>Sorteie as chaves, marque os vencedores e guarde o histórico dos campeonatos</p>
+      <p>Chave eliminatória ou pontuação corrida, com histórico e ranking dos campeonatos</p>
     </div>
   </div>
   <div class="head-actions">
@@ -331,6 +380,18 @@
         </div>
         <label class="fld" for="customSport">Outra modalidade (opcional)</label>
         <input type="text" id="customSport" placeholder="Ex.: Mario Kart, Wii Sports…" maxlength="30">
+
+        <label class="fld">Formato da competição</label>
+        <div class="formats" id="formats">
+          <button type="button" class="fmt" data-format="bracket">
+            <span class="fico">🏆</span>
+            <span><b>Chave eliminatória</b><i>Confrontos 1 x 1, quem vence avança</i></span>
+          </button>
+          <button type="button" class="fmt active" data-format="score">
+            <span class="fico">📋</span>
+            <span><b>Pontuação corrida</b><i>Todos jogam juntos, vence quem fizer mais pontos</i></span>
+          </button>
+        </div>
       </div>
 
       <div class="card" style="margin-top:16px">
@@ -348,7 +409,7 @@
 
         <div class="plist" id="plist"></div>
 
-        <label class="opt"><input type="checkbox" id="optThird" checked> Disputa de 3º lugar</label>
+        <label class="opt" id="optThirdRow"><input type="checkbox" id="optThird" checked> Disputa de 3º lugar</label>
         <button class="btn btn-primary" id="btnGenerate" style="width:100%;margin-top:14px">🎲 Sortear chaves</button>
       </div>
     </div>
@@ -391,12 +452,19 @@ const MH = 104, PITCH = 120;        // precisa bater com --mh / --pitch-base do 
 let state = {
   sport:'boliche',
   customSport:'',
+  format:'score',    // 'bracket' (chave eliminatória) | 'score' (pontuação corrida)
   third:true,
   participants:[],   // {id,name,photo}
   rounds:null,       // [[{a,b,winner,sa,sb}]]  a/b = id do participante | null (bye)
   thirdMatch:null,   // {a,b,winner,sa,sb}
+  board:null,        // {order:[id], scores:{id:'123'}} — modo pontuação corrida
   savedAs:null       // id do registro no histórico, se já foi salvo
 };
+
+/* Boliche todo mundo joga junto e vence quem fizer mais pontos;
+   as demais modalidades são confrontos 1 x 1. */
+const defaultFormat = sportId => sportId === 'boliche' ? 'score' : 'bracket';
+const isScoreMode = () => state.format === 'score';
 let history = [];          // [{id,date,sport,icon,players,rounds,thirdMatch,champion,runnerUp,third}]
 let tab = 'bracket';
 let openEntry = null;      // id do registro expandido no histórico
@@ -620,15 +688,74 @@ function applyScore(r, i){
 }
 
 /* ============================================================
+   Pontuação corrida (boliche e afins)
+   ============================================================ */
+function startBoard(){
+  if(state.participants.length < 2){ toast('⚠️ Adicione pelo menos 2 participantes.'); return; }
+  state.board = {order: shuffle(state.participants.map(p => p.id)), scores: {}};
+  state.savedAs = null;
+  tab = 'bracket';
+  save(); render();
+  toast(`🎳 Ordem de jogo sorteada para ${state.participants.length} participantes.`);
+}
+function setBoardScore(id, val){
+  if(!state.board) return;
+  state.board.scores[id] = val;
+  save();
+}
+
+/* Classificação: quem tem pontuação, do maior para o menor (empate divide a posição);
+   quem ainda não tem fica de fora, na lista de pendentes. */
+function standings(){
+  const ranked = [], pending = [];
+  (state.board ? state.board.order : []).forEach(id => {
+    const p = byId(id);
+    if(!p) return;
+    const n = parseInt(state.board.scores[id], 10);
+    if(isNaN(n)) pending.push({p}); else ranked.push({p, score:n});
+  });
+  ranked.sort((a,b) => b.score - a.score);
+  let pos = 0, prev = null;
+  ranked.forEach((r, i) => { if(r.score !== prev){ pos = i + 1; prev = r.score; } r.pos = pos; });
+  return {ranked, pending};
+}
+
+/* Só há campeão com todos pontuados e sem empate na liderança. */
+function boardResult(){
+  const {ranked, pending} = standings();
+  if(pending.length || ranked.length < 2) return null;
+  if(ranked[0].score === ranked[1].score) return {tie:true};
+  const r2 = ranked[1], r3 = ranked[2];
+  return {
+    champion: ranked[0].p.id,
+    runnerUp: (r3 && r3.score === r2.score) ? null : r2.p.id,   // empate no 2º não define vice
+    third: (r3 && r3.score < r2.score && !(ranked[3] && ranked[3].score === r3.score)) ? r3.p.id : null
+  };
+}
+
+/* ============================================================
    Histórico
    ============================================================ */
 async function archiveTournament(){
-  const R = state.rounds, champ = championId();
-  if(!champ){ toast('⚠️ Defina o vencedor da final antes de salvar.'); return; }
+  let champ, runnerUp, third, extra;
 
-  const finalM = R[R.length-1][0];
-  const runnerUp = finalM.winner === finalM.a ? finalM.b : finalM.a;
-  const third = state.thirdMatch && state.thirdMatch.winner ? state.thirdMatch.winner : null;
+  if(isScoreMode()){
+    const res = boardResult();
+    if(!res || res.tie){
+      toast(res ? '⚠️ Há empate na liderança — desempate antes de salvar.' : '⚠️ Preencha a pontuação de todos antes de salvar.');
+      return;
+    }
+    ({champion: champ, runnerUp, third} = res);
+    extra = {board: clone(state.board)};
+  } else {
+    const R = state.rounds;
+    champ = championId();
+    if(!champ){ toast('⚠️ Defina o vencedor da final antes de salvar.'); return; }
+    const finalM = R[R.length-1][0];
+    runnerUp = finalM.winner === finalM.a ? finalM.b : finalM.a;
+    third = state.thirdMatch && state.thirdMatch.winner ? state.thirdMatch.winner : null;
+    extra = {rounds: clone(R), thirdMatch: clone(state.thirdMatch)};
+  }
 
   // fotos menores no histórico: 96px é suficiente e cabe muito mais campeonato
   const players = await Promise.all(state.participants.map(async p => ({
@@ -636,14 +763,14 @@ async function archiveTournament(){
   })));
 
   const existing = state.savedAs ? history.find(h => h.id === state.savedAs) : null;
-  const entry = {
+  const entry = Object.assign({
     id: existing ? existing.id : uid(),
     date: existing ? existing.date : new Date().toISOString(),
     updated: existing ? new Date().toISOString() : null,
-    sport: sportName(), icon: sportIcon(),
-    players, rounds: clone(R), thirdMatch: clone(state.thirdMatch),
-    champion: champ, runnerUp: runnerUp || null, third
-  };
+    sport: sportName(), icon: sportIcon(), format: isScoreMode() ? 'score' : 'bracket',
+    players,
+    champion: champ, runnerUp: runnerUp || null, third: third || null
+  }, extra);
 
   if(existing) history[history.indexOf(existing)] = entry;
   else history.unshift(entry);
@@ -685,7 +812,8 @@ function ranking(){
     if(run)   get(run.name).runner++;
     if(thd)   get(thd.name).third++;
 
-    const all = h.rounds.flat().concat(h.thirdMatch ? [h.thirdMatch] : []);
+    // vitórias/derrotas só existem em confronto direto; no placar corrido não há partidas
+    const all = (h.rounds || []).flat().concat(h.thirdMatch ? [h.thirdMatch] : []);
     all.forEach(m => {
       if(!m.a || !m.b || !m.winner) return;        // BYE ou partida não decidida não contam
       const wp = find(m.winner), lp = find(m.winner === m.a ? m.b : m.a);
@@ -721,7 +849,14 @@ function renderSetup(){
         </div>`).join('')
     : '<div class="empty">Nenhum participante ainda.<br>Adicione pelo menos 2 para sortear.</div>';
 
-  document.getElementById('btnGenerate').disabled = state.participants.length < 2;
+  const score = isScoreMode();
+  document.querySelectorAll('#formats .fmt').forEach(el => {
+    el.classList.toggle('active', el.dataset.format === state.format);
+  });
+  document.getElementById('optThirdRow').style.display = score ? 'none' : '';
+  const gen = document.getElementById('btnGenerate');
+  gen.textContent = score ? '🎳 Iniciar competição' : '🎲 Sortear chaves';
+  gen.disabled = state.participants.length < 2;
   document.getElementById('histCount').textContent = history.length;
   [...document.querySelectorAll('.tab')].forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
 }
@@ -849,6 +984,122 @@ function panelBracket(){
   return html;
 }
 
+/* Placar de um campeonato salvo (somente leitura) */
+function boardHTML(h){
+  const find = finder(h.players);
+  const rows = h.board.order.map(id => ({p: find(id), score: parseInt(h.board.scores[id], 10)}))
+    .filter(r => r.p && !isNaN(r.score))
+    .sort((a,b) => b.score - a.score);
+  let pos = 0, prev = null;
+  rows.forEach((r,i) => { if(r.score !== prev){ pos = i+1; prev = r.score; } r.pos = pos; });
+
+  return '<div class="stand" style="max-width:340px">' + rows.map(r => {
+    const medal = r.pos === 1 ? '🥇' : r.pos === 2 ? '🥈' : r.pos === 3 ? '🥉' : r.pos + 'º';
+    return `<div class="srow p${r.pos <= 3 ? r.pos : 0}">
+        <span class="pos">${medal}</span>${avatar(r.p, 24)}
+        <span class="nm">${esc(r.p.name)}</span><span class="sc">${r.score}</span>
+      </div>`;
+  }).join('') + '</div>';
+}
+
+function panelBoard(){
+  if(!state.board){
+    return `<div class="placeholder">
+        <div class="big">🎳📋</div>
+        <h3>Competição de pontuação</h3>
+        <p>Todo mundo joga junto e vence quem fizer mais pontos.<br>
+        Cadastre os participantes e clique em <b>Iniciar competição</b>.</p>
+      </div>`;
+  }
+
+  const {ranked, pending} = standings();
+  const res = boardResult();
+  const champ = res && res.champion ? byId(res.champion) : null;
+  const vice  = res && res.runnerUp ? byId(res.runnerUp) : null;
+  const third = res && res.third ? byId(res.third) : null;
+  const saved = state.savedAs && history.some(h => h.id === state.savedAs);
+  const leaderId = ranked.length ? ranked[0].p.id : null;
+
+  let html = `
+    <div class="bracket-head">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <span class="badge">${sportIcon()} ${esc(sportName())}</span>
+        <span class="badge">👥 ${state.participants.length} participantes</span>
+        <span class="badge">📋 Pontuação corrida</span>
+      </div>
+      <div class="head-actions bracket-actions">
+        <button class="btn btn-sm" id="btnReshuffle">🎲 Sortear ordem de novo</button>
+        <button class="btn btn-sm" id="btnClearResults">↺ Limpar pontuações</button>
+      </div>
+    </div>`;
+
+  if(champ){
+    html += `
+      <div class="champ">
+        ${avatar(champ, 72)}
+        <div>
+          <div class="lbl">Campeão · ${esc(sportName())}</div>
+          <div class="nm">${esc(champ.name)}</div>
+          <div class="sub">${ranked[0].score} pontos 🎉</div>
+        </div>
+        <div class="podium">
+          <div class="pod"><span class="pos">🥇</span><span class="pn">${esc(champ.name)} · ${ranked[0].score}</span></div>
+          ${vice  ? `<div class="pod"><span class="pos">🥈</span><span class="pn">${esc(vice.name)} · ${ranked[1].score}</span></div>` : ''}
+          ${third ? `<div class="pod"><span class="pos">🥉</span><span class="pn">${esc(third.name)} · ${ranked[2].score}</span></div>` : ''}
+          <button class="btn ${saved ? '' : 'btn-gold'}" id="btnArchive">
+            ${saved ? '💾 Atualizar no histórico' : '🏅 Salvar no histórico'}
+          </button>
+        </div>
+      </div>`;
+  } else if(res && res.tie){
+    html += `<div class="tie">🤝 <b>Empate na liderança</b> com ${ranked[0].score} pontos.
+             Ajuste a pontuação ou façam um desempate para fechar o campeonato.</div>`;
+  } else {
+    html += `<div class="howto">
+      <span style="font-size:20px">✍️</span>
+      <span>Digite a <b>pontuação final</b> de cada participante. A classificação ao lado se atualiza
+      sozinha e o campeão é anunciado quando todos tiverem pontuado
+      ${pending.length ? `— faltam <b>${pending.length}</b>.` : '.'}</span>
+    </div>`;
+  }
+
+  html += '<div class="board"><div class="bsec"><h3>Pontuação — ordem de jogo</h3>';
+  state.board.order.forEach((id, i) => {
+    const p = byId(id);
+    if(!p) return;
+    html += `
+      <div class="brow ${leaderId === id && ranked.length > 1 ? 'lead' : ''}">
+        <span class="ord">${i+1}º</span>
+        ${avatar(p, 36)}
+        <span class="nm">${esc(p.name)}</span>
+        <input class="pts" type="text" inputmode="numeric" maxlength="4" placeholder="–"
+               value="${esc(state.board.scores[id] || '')}" data-score="${id}"
+               aria-label="Pontuação de ${esc(p.name)}">
+      </div>`;
+  });
+  html += '</div>';
+
+  html += '<div class="bsec"><h3>Classificação</h3><div class="stand">';
+  if(!ranked.length && !pending.length){
+    html += '<div class="empty" style="border:none">Sem participantes.</div>';
+  }
+  ranked.forEach(r => {
+    const medal = r.pos === 1 ? '🥇' : r.pos === 2 ? '🥈' : r.pos === 3 ? '🥉' : r.pos + 'º';
+    html += `<div class="srow p${r.pos <= 3 ? r.pos : 0}">
+        <span class="pos">${medal}</span>${avatar(r.p, 24)}
+        <span class="nm">${esc(r.p.name)}</span><span class="sc">${r.score}</span>
+      </div>`;
+  });
+  pending.forEach(r => {
+    html += `<div class="srow">
+        <span class="pos">–</span>${avatar(r.p, 24)}
+        <span class="nm">${esc(r.p.name)}</span><span class="sc none">sem pontos</span>
+      </div>`;
+  });
+  html += '</div></div></div>';
+  return html;
+}
+
 function panelHistory(){
   if(!history.length){
     return `<div class="placeholder">
@@ -891,7 +1142,7 @@ function panelHistory(){
             <button class="btn btn-sm" data-delh="${h.id}" title="Apagar">🗑️</button>
           </div>
         </div>
-        <div class="hbody">${open ? bracketHTML(h.rounds, h.thirdMatch, h.players, true) : ''}</div>
+        <div class="hbody">${open ? (h.board ? boardHTML(h) : bracketHTML(h.rounds, h.thirdMatch, h.players, true)) : ''}</div>
       </div>`;
   });
   return html + '</div>';
@@ -936,16 +1187,26 @@ function panelRank(){
         </div></td>
       </tr>`;
   });
-  return html + '</tbody></table></div>';
+  html += '</tbody></table></div>';
+  if(history.some(h => h.board)){
+    html += `<p class="hint" style="margin-top:12px">Vitórias e derrotas contam apenas confrontos de chave
+             eliminatória — nos campeonatos de pontuação corrida não há partidas 1 x 1.</p>`;
+  }
+  return html;
 }
 
 function render(){
   renderSetup();
   const panel = document.getElementById('panel');
-  panel.innerHTML = tab === 'history' ? panelHistory() : tab === 'rank' ? panelRank() : panelBracket();
+  panel.innerHTML = tab === 'history' ? panelHistory()
+                  : tab === 'rank'    ? panelRank()
+                  : isScoreMode()     ? panelBoard()
+                  :                     panelBracket();
 
   if(focusBack){
-    const el = panel.querySelector(`.sc[data-sr="${focusBack.sr}"][data-si="${focusBack.si}"][data-sw="${focusBack.sw}"]`);
+    const el = panel.querySelector(focusBack.score
+      ? `.pts[data-score="${focusBack.score}"]`
+      : `.sc[data-sr="${focusBack.sr}"][data-si="${focusBack.si}"][data-sw="${focusBack.sw}"]`);
     if(el){ el.focus(); const v = el.value; try{ el.setSelectionRange(v.length, v.length); }catch(err){} }
     focusBack = null;
   }
@@ -967,7 +1228,16 @@ document.getElementById('sports').addEventListener('click', e => {
   if(!el) return;
   state.sport = el.dataset.sport;
   state.customSport = '';
+  state.format = defaultFormat(state.sport);   // boliche entra em pontuação corrida
   document.getElementById('customSport').value = '';
+  save(); render();
+});
+
+// formato da competição
+document.getElementById('formats').addEventListener('click', e => {
+  const el = e.target.closest('[data-format]');
+  if(!el || el.dataset.format === state.format) return;
+  state.format = el.dataset.format;
   save(); render();
 });
 document.getElementById('customSport').addEventListener('input', e => {
@@ -1033,6 +1303,10 @@ document.getElementById('plist').addEventListener('click', e => {
     state.rounds = null; state.thirdMatch = null; state.savedAs = null;
     toast('A chave foi desfeita — sorteie novamente.');
   }
+  if(state.board){
+    state.board = null; state.savedAs = null;
+    toast('A competição foi desfeita — inicie novamente.');
+  }
   save(); render();
 });
 
@@ -1042,17 +1316,31 @@ document.getElementById('optThird').addEventListener('change', e => {
   recompute(); save(); render();
 });
 
-document.getElementById('btnGenerate').addEventListener('click', generateBracket);
+document.getElementById('btnGenerate').addEventListener('click', () => {
+  isScoreMode() ? startBoard() : generateBracket();
+});
 
 // painel principal (chaveamento / histórico / ranking)
 document.getElementById('panel').addEventListener('click', e => {
   if(e.target.classList.contains('sc')) return;   // clique no placar não escolhe vencedor
 
   if(e.target.closest('#btnReshuffle')){
-    if(confirm('Sortear as chaves novamente? Todos os resultados atuais serão perdidos.')) generateBracket();
+    if(isScoreMode()){
+      if(confirm('Sortear a ordem de jogo novamente? As pontuações atuais serão perdidas.')) startBoard();
+    } else if(confirm('Sortear as chaves novamente? Todos os resultados atuais serão perdidos.')){
+      generateBracket();
+    }
     return;
   }
   if(e.target.closest('#btnClearResults')){
+    if(isScoreMode()){
+      if(!confirm('Limpar todas as pontuações mantendo a ordem de jogo?')) return;
+      state.board.scores = {};
+      state.savedAs = null;
+      save(); render();
+      toast('↺ Pontuações limpas.');
+      return;
+    }
     if(!confirm('Limpar todos os resultados mantendo o sorteio atual?')) return;
     state.rounds.forEach(rd => rd.forEach(m => { m.winner = null; m.sa = ''; m.sb = ''; }));
     if(state.thirdMatch){ state.thirdMatch.winner = null; state.thirdMatch.sa = ''; state.thirdMatch.sb = ''; }
@@ -1077,6 +1365,15 @@ document.getElementById('panel').addEventListener('click', e => {
 
 // placares — digitar os dois já define quem avança
 document.getElementById('panel').addEventListener('input', e => {
+  // pontuação corrida: cada participante tem um campo só
+  if(e.target.classList.contains('pts') && !e.target.disabled){
+    const clean = e.target.value.replace(/[^\d]/g, '');
+    if(clean !== e.target.value) e.target.value = clean;
+    setBoardScore(e.target.dataset.score, clean);
+    focusBack = {score: e.target.dataset.score};
+    render();
+    return;
+  }
   if(!e.target.classList.contains('sc') || e.target.disabled) return;
   const clean = e.target.value.replace(/[^\d]/g, '');
   if(clean !== e.target.value) e.target.value = clean;
@@ -1125,7 +1422,8 @@ document.getElementById('importInput').addEventListener('change', e => {
 document.getElementById('btnPrint').addEventListener('click', () => window.print());
 document.getElementById('btnClearAll').addEventListener('click', () => {
   if(!confirm('Começar um campeonato novo? Os participantes e a chave atual serão apagados.\n\nO histórico de campeonatos salvos é mantido.')) return;
-  state = {sport:'boliche', customSport:'', third:true, participants:[], rounds:null, thirdMatch:null, savedAs:null};
+  state = {sport:'boliche', customSport:'', format:'score', third:true,
+           participants:[], rounds:null, thirdMatch:null, board:null, savedAs:null};
   pendingPhoto = null; photoTarget = null;
   document.getElementById('customSport').value = '';
   document.getElementById('optThird').checked = true;
@@ -1147,6 +1445,7 @@ window.addEventListener('error', e => showFatal(e.message || 'erro desconhecido'
 
 try{
   load();
+  if(!state.format) state.format = defaultFormat(state.sport);   // estados salvos antes dos formatos
   document.getElementById('customSport').value = state.customSport || '';
   document.getElementById('optThird').checked = state.third !== false;
   if(state.rounds) recompute();
