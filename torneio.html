@@ -62,13 +62,25 @@
   /* ---------- Modalidades ---------- */
   .sports{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
   .sport{
+    position:relative;width:100%;font-family:inherit;color:var(--text);
     background:var(--surface2);border:1px solid var(--border);border-radius:12px;
-    padding:11px 6px;text-align:center;cursor:pointer;transition:.15s;user-select:none;
+    padding:12px 6px;text-align:center;cursor:pointer;transition:.15s;user-select:none;
   }
-  .sport:hover{border-color:var(--border2);transform:translateY(-2px)}
+  .sport:hover{border-color:var(--border2);transform:translateY(-2px);background:#26325c}
   .sport.active{border-color:var(--red2);background:linear-gradient(135deg,rgba(230,0,18,.28),rgba(255,71,87,.12));box-shadow:0 4px 16px rgba(230,0,18,.25)}
-  .sport .ico{font-size:24px;display:block;margin-bottom:4px}
-  .sport .nm{font-size:11px;font-weight:600}
+  .sport.active::after{
+    content:'✓';position:absolute;top:4px;right:6px;font-size:11px;font-weight:900;color:var(--red2)
+  }
+  .sport .ico{font-size:26px;display:block;margin-bottom:4px;line-height:1}
+  .sport .nm{font-size:11px;font-weight:700}
+
+  /* aviso quando o JavaScript não roda (ex.: pré-visualização que bloqueia scripts) */
+  .warn{
+    background:linear-gradient(135deg,rgba(230,0,18,.25),rgba(251,191,36,.15));
+    border:1px solid var(--red2);border-radius:12px;padding:14px 16px;margin:0 0 16px;
+    font-size:13px;line-height:1.6
+  }
+  .warn b{color:var(--yellow)}
 
   label.fld{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:14px 0 6px}
   input[type=text],input[type=number]{
@@ -269,13 +281,30 @@
 </header>
 
 <div class="wrap">
+  <noscript>
+    <div class="warn">
+      ⚠️ <b>O JavaScript está bloqueado neste visualizador.</b> Os botões não vão responder assim.
+      Baixe o arquivo <code>torneio.html</code> e abra direto no navegador (Chrome, Safari, Edge),
+      ou acesse a página publicada.
+    </div>
+  </noscript>
+  <div id="fatal"></div>
+
   <div class="layout">
 
     <!-- ================= PAINEL DE CONFIGURAÇÃO ================= -->
     <div class="setup">
       <div class="card">
         <h2>🎮 Modalidade</h2>
-        <div class="sports" id="sports"></div>
+        <div class="sports" id="sports">
+          <button type="button" class="sport active" data-sport="boliche"><span class="ico">🎳</span><span class="nm">Boliche</span></button>
+          <button type="button" class="sport" data-sport="tenis"><span class="ico">🎾</span><span class="nm">Tênis</span></button>
+          <button type="button" class="sport" data-sport="badminton"><span class="ico">🏸</span><span class="nm">Badminton</span></button>
+          <button type="button" class="sport" data-sport="volei"><span class="ico">🏐</span><span class="nm">Vôlei</span></button>
+          <button type="button" class="sport" data-sport="futebol"><span class="ico">⚽</span><span class="nm">Futebol</span></button>
+          <button type="button" class="sport" data-sport="espada"><span class="ico">⚔️</span><span class="nm">Espada</span></button>
+          <button type="button" class="sport" data-sport="golfe"><span class="ico">⛳</span><span class="nm">Golfe</span></button>
+        </div>
         <label class="fld" for="customSport">Outra modalidade (opcional)</label>
         <input type="text" id="customSport" placeholder="Ex.: Mario Kart, Wii Sports…" maxlength="30">
       </div>
@@ -634,10 +663,11 @@ function ranking(){
    Render — painel de configuração
    ============================================================ */
 function renderSetup(){
-  document.getElementById('sports').innerHTML = SPORTS.map(s => `
-    <div class="sport ${state.sport === s.id && !state.customSport.trim() ? 'active' : ''}" data-sport="${s.id}">
-      <span class="ico">${s.ico}</span><span class="nm">${s.nm}</span>
-    </div>`).join('');
+  // os botões de modalidade são HTML fixo (aparecem mesmo sem JS) — aqui só marcamos o escolhido
+  const custom = !!state.customSport.trim();
+  document.querySelectorAll('#sports .sport').forEach(el => {
+    el.classList.toggle('active', !custom && el.dataset.sport === state.sport);
+  });
 
   document.getElementById('pCount').textContent = state.participants.length;
 
@@ -1040,11 +1070,22 @@ document.getElementById('btnClearAll').addEventListener('click', () => {
 /* ============================================================
    Boot
    ============================================================ */
-load();
-document.getElementById('customSport').value = state.customSport || '';
-document.getElementById('optThird').checked = state.third !== false;
-if(state.rounds) recompute();
-render();
+function showFatal(msg){
+  const el = document.getElementById('fatal');
+  if(el) el.innerHTML = `<div class="warn">⚠️ <b>Algo deu errado ao carregar o app:</b> ${esc(msg)}<br>
+    Tente abrir o arquivo direto no navegador. Se continuar, me mande essa mensagem.</div>`;
+}
+window.addEventListener('error', e => showFatal(e.message || 'erro desconhecido'));
+
+try{
+  load();
+  document.getElementById('customSport').value = state.customSport || '';
+  document.getElementById('optThird').checked = state.third !== false;
+  if(state.rounds) recompute();
+  render();
+}catch(err){
+  showFatal(err && err.message ? err.message : String(err));
+}
 </script>
 </body>
 </html>
