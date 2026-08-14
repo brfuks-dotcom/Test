@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏆 Chaveamento Nintendo Switch Sports</title>
+<style>
+  :root{
+    --bg:#0b1020; --bg2:#0f1730; --surface:#151d38; --surface2:#1c2748;
+    --border:#2a3660; --border2:#3a4a80;
+    --red:#e60012; --red2:#ff4757; --blue:#3ba7ff; --cyan:#22d3ee;
+    --green:#22c55e; --yellow:#fbbf24; --purple:#a78bfa;
+    --text:#eaf0ff; --muted:#93a0c8;
+    --mh:104px;              /* altura fixa do card de partida */
+    --pitch-base:120px;      /* altura + espaçamento base */
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      radial-gradient(1100px 600px at 12% -10%, #1b2a5e 0%, transparent 60%),
+      radial-gradient(900px 500px at 95% 0%, #3a1030 0%, transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:14px; min-height:100vh;
+  }
+
+  /* ---------- Cabeçalho ---------- */
+  header{
+    border-bottom:1px solid var(--border);
+    background:linear-gradient(135deg,rgba(230,0,18,.18),rgba(59,167,255,.12));
+    backdrop-filter:blur(6px);
+    padding:18px 24px; display:flex; align-items:center; justify-content:space-between;
+    gap:14px; flex-wrap:wrap; position:sticky; top:0; z-index:40;
+  }
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand-icon{font-size:34px;filter:drop-shadow(0 2px 8px rgba(230,0,18,.5))}
+  .brand h1{font-size:20px;font-weight:800;letter-spacing:-.02em}
+  .brand p{font-size:12px;color:var(--muted);margin-top:2px}
+  .head-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+  /* ---------- Botões ---------- */
+  button{font-family:inherit;font-size:13px;cursor:pointer;border:none;border-radius:9px;transition:.15s}
+  .btn{padding:9px 15px;background:var(--surface2);color:var(--text);border:1px solid var(--border2);font-weight:600}
+  .btn:hover{background:#26325c;transform:translateY(-1px)}
+  .btn-primary{background:linear-gradient(135deg,var(--red),#ff6b3d);border-color:transparent;color:#fff;box-shadow:0 6px 18px rgba(230,0,18,.32)}
+  .btn-primary:hover{filter:brightness(1.08);box-shadow:0 8px 24px rgba(230,0,18,.42)}
+  .btn-gold{background:linear-gradient(135deg,#f59e0b,#fbbf24);border-color:transparent;color:#231400;box-shadow:0 6px 18px rgba(251,191,36,.3)}
+  .btn-gold:hover{filter:brightness(1.06)}
+  .btn-ghost{background:transparent}
+  .btn-sm{padding:6px 11px;font-size:12px}
+  .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+  .wrap{max-width:1500px;margin:0 auto;padding:22px 24px 60px}
+  .layout{display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start}
+  @media(max-width:1000px){.layout{grid-template-columns:1fr}}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px}
+  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .card h2 .n{background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:1px 9px;font-size:11px;color:var(--text);letter-spacing:0}
+
+  /* ---------- Modalidades ---------- */
+  .sports{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+  .sport{
+    position:relative;width:100%;font-family:inherit;color:var(--text);
+    background:var(--surface2);border:1px solid var(--border);border-radius:12px;
+    padding:12px 6px;text-align:center;cursor:pointer;transition:.15s;user-select:none;
+  }
+  .sport:hover{border-color:var(--border2);transform:translateY(-2px);background:#26325c}
+  .sport.active{border-color:var(--red2);background:linear-gradient(135deg,rgba(230,0,18,.28),rgba(255,71,87,.12));box-shadow:0 4px 16px rgba(230,0,18,.25)}
+  .sport.active::after{
+    content:'✓';position:absolute;top:4px;right:6px;font-size:11px;font-weight:900;color:var(--red2)
+  }
+  .sport .ico{font-size:26px;display:block;margin-bottom:4px;line-height:1}
+  .sport .nm{font-size:11px;font-weight:700}
+
+  /* aviso quando o JavaScript não roda (ex.: pré-visualização que bloqueia scripts) */
+  .warn{
+    background:linear-gradient(135deg,rgba(230,0,18,.25),rgba(251,191,36,.15));
+    border:1px solid var(--red2);border-radius:12px;padding:14px 16px;margin:0 0 16px;
+    font-size:13px;line-height:1.6
+  }
+  .warn b{color:var(--yellow)}
+
+  label.fld{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:14px 0 6px}
+  input[type=text],input[type=number]{
+    width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:9px;
+    padding:10px 12px;color:var(--text);font-family:inherit;font-size:14px;outline:none;transition:.15s
+  }
+  input[type=text]:focus,input[type=number]:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,167,255,.15)}
+
+  /* ---------- Adicionar participante ---------- */
+  .add-row{display:flex;gap:10px;align-items:center}
+  .photo-pick{
+    width:52px;height:52px;flex:0 0 52px;border-radius:14px;border:2px dashed var(--border2);
+    background:var(--bg2);display:grid;place-items:center;cursor:pointer;overflow:hidden;position:relative;transition:.15s
+  }
+  .photo-pick:hover{border-color:var(--blue);background:#132048}
+  .photo-pick img{width:100%;height:100%;object-fit:cover;display:block}
+  .photo-pick .ph{font-size:20px;opacity:.75}
+  /* input de arquivo visualmente escondido, mas ainda "clicável" pelo <label> */
+  .vh{position:absolute;width:1px;height:1px;padding:0;margin:0;opacity:0;overflow:hidden;border:0}
+  .hint{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5}
+
+  /* ---------- Lista de participantes ---------- */
+  .plist{margin-top:14px;display:flex;flex-direction:column;gap:7px;max-height:330px;overflow-y:auto;padding-right:4px}
+  .plist::-webkit-scrollbar{width:8px}
+  .plist::-webkit-scrollbar-thumb{background:var(--border2);border-radius:8px}
+  .prow{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:7px 9px}
+  .prow:hover{border-color:var(--border2)}
+  .prow .nm{flex:1;font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .prow .x{background:transparent;border:none;color:var(--muted);font-size:16px;padding:2px 6px;border-radius:7px}
+  .prow .x:hover{color:var(--red2);background:rgba(230,0,18,.14)}
+  .ph-btn{position:relative;cursor:pointer;border-radius:50%;flex-shrink:0}
+  .ph-btn::after{
+    content:'📷';position:absolute;right:-3px;bottom:-3px;font-size:10px;background:var(--surface);
+    border:1px solid var(--border2);border-radius:50%;width:16px;height:16px;display:grid;place-items:center
+  }
+  .ph-btn:hover{filter:brightness(1.15)}
+  .empty{color:var(--muted);font-size:12px;text-align:center;padding:22px 10px;border:1px dashed var(--border);border-radius:12px}
+
+  .av{border-radius:50%;object-fit:cover;background:linear-gradient(135deg,#3ba7ff,#a78bfa);display:grid;place-items:center;font-weight:800;color:#0b1020;flex-shrink:0;overflow:hidden}
+  .av-24{width:24px;height:24px;font-size:10px}
+  .av-32{width:32px;height:32px;font-size:12px}
+  .av-36{width:36px;height:36px;font-size:13px}
+  .av-44{width:44px;height:44px;font-size:16px}
+  .av-72{width:72px;height:72px;font-size:26px;border:3px solid rgba(255,255,255,.25)}
+
+  .opt{display:flex;align-items:center;gap:9px;margin-top:12px;font-size:13px;color:var(--muted);cursor:pointer}
+  .opt input{width:16px;height:16px;accent-color:var(--red2);cursor:pointer}
+
+  /* ---------- Abas ---------- */
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin:-4px -4px 18px;padding:0 4px;overflow-x:auto}
+  .tab{padding:10px 16px;background:transparent;color:var(--muted);font-weight:600;border-bottom:2px solid transparent;border-radius:9px 9px 0 0;white-space:nowrap}
+  .tab:hover{color:var(--text);background:var(--surface2)}
+  .tab.active{color:var(--red2);border-bottom-color:var(--red2)}
+  .tab .cnt{background:var(--surface2);border-radius:20px;padding:1px 7px;font-size:11px;margin-left:6px;color:var(--text)}
+
+  /* ---------- Chaveamento ---------- */
+  .bracket-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  .badge{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600}
+  .bracket-scroll{overflow-x:auto;padding:6px 4px 18px}
+  .bracket-scroll::-webkit-scrollbar{height:10px}
+  .bracket-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:8px}
+  .bracket{display:flex;gap:48px;min-width:min-content}
+  .round{display:flex;flex-direction:column;padding-top:var(--pad,0);gap:var(--gap,16px);flex:0 0 auto;width:250px}
+  .round-title{position:absolute;top:-26px;left:0;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;white-space:nowrap}
+
+  .match{
+    position:relative;height:var(--mh);background:var(--surface);border:1px solid var(--border);
+    border-radius:12px;display:flex;flex-direction:column;transition:.15s
+  }
+  .match .slot:last-child{border-radius:0 0 11px 11px}
+  .match:hover{border-color:var(--border2)}
+  .match.decided{border-color:rgba(34,197,94,.45)}
+  .match-lbl{font-size:10px;color:var(--muted);padding:4px 10px 0;letter-spacing:.06em;text-transform:uppercase;height:22px}
+  .slot{
+    flex:1;display:flex;align-items:center;gap:8px;padding:0 9px;cursor:pointer;
+    border-top:1px solid var(--border);transition:.13s;min-width:0
+  }
+  .slot:hover{background:#1d2950}
+  .slot.empty-slot,.ro .slot{cursor:default}
+  .slot.empty-slot{color:var(--muted)}
+  .slot.empty-slot:hover,.ro .slot:hover{background:transparent}
+  .slot .nm{flex:1;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  .slot.win{background:linear-gradient(90deg,rgba(34,197,94,.22),transparent)}
+  .slot.win .nm{color:#5ef08e}
+  .slot.lose{opacity:.42}
+  .slot.lose .nm{text-decoration:line-through}
+  .slot .sc{
+    width:36px;flex:0 0 36px;background:var(--bg2);border:1px solid var(--border);border-radius:7px;
+    color:var(--text);text-align:center;font-size:12px;padding:3px 2px;font-family:inherit;-moz-appearance:textfield
+  }
+  .slot .sc:disabled{opacity:.8}
+  .slot .sc::-webkit-outer-spin-button,.slot .sc::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .slot .tick{font-size:13px;width:14px;text-align:center;flex:0 0 14px}
+
+  /* conectores */
+  .round-wrap{position:relative}
+  .bracket .round-wrap:not(:last-child) .match::after{
+    content:'';position:absolute;right:-24px;top:50%;width:24px;height:2px;background:var(--border2)
+  }
+  .bracket .round-wrap:not(:last-child) .match::before{
+    content:'';position:absolute;right:-24px;width:2px;background:var(--border2)
+  }
+  .bracket .round-wrap:not(:last-child) .match:nth-child(odd)::before{top:50%;height:var(--half,60px)}
+  .bracket .round-wrap:not(:last-child) .match:nth-child(even)::before{bottom:50%;height:var(--half,60px)}
+  .match .lead{position:absolute;left:-24px;top:50%;width:24px;height:2px;background:var(--border2);display:none}
+  .bracket .round-wrap:not(:first-child) .match .lead{display:block}
+
+  /* ---------- Campeão ---------- */
+  .champ{
+    margin-bottom:18px;border-radius:16px;padding:18px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    background:linear-gradient(135deg,rgba(251,191,36,.22),rgba(230,0,18,.14));
+    border:1px solid rgba(251,191,36,.5);box-shadow:0 10px 34px rgba(251,191,36,.14)
+  }
+  .champ .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--yellow);font-weight:800}
+  .champ .nm{font-size:26px;font-weight:900;letter-spacing:-.02em;line-height:1.15}
+  .champ .sub{font-size:12px;color:var(--muted);margin-top:3px}
+  .podium{display:flex;gap:10px;flex-wrap:wrap;margin-left:auto;align-items:center}
+  .pod{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.28);border:1px solid var(--border);border-radius:11px;padding:7px 12px}
+  .pod .pos{font-size:16px}
+  .pod .pn{font-size:12px;font-weight:700}
+
+  .third{margin-top:22px;max-width:250px}
+  .third .round-title{position:static;margin-bottom:8px;display:block}
+
+  .placeholder{text-align:center;padding:60px 20px;color:var(--muted)}
+  .placeholder .big{font-size:56px;margin-bottom:12px}
+  .placeholder h3{font-size:17px;color:var(--text);margin-bottom:6px}
+
+  /* ---------- Histórico ---------- */
+  .hist{display:flex;flex-direction:column;gap:12px}
+  .hentry{background:var(--surface2);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+  .hentry.open{border-color:var(--border2)}
+  .hhead{display:flex;align-items:center;gap:14px;padding:14px 16px;flex-wrap:wrap}
+  .hicon{font-size:26px;width:44px;height:44px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--border);border-radius:12px;flex-shrink:0}
+  .hinfo{min-width:180px;flex:1}
+  .hinfo .t{font-size:15px;font-weight:800}
+  .hinfo .d{font-size:11px;color:var(--muted);margin-top:2px}
+  .hpodium{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .hp{display:flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 11px 4px 5px;font-size:12px;font-weight:700}
+  .hp.g{border-color:rgba(251,191,36,.5);background:rgba(251,191,36,.12)}
+  .hactions{display:flex;gap:7px;margin-left:auto}
+  .hbody{border-top:1px solid var(--border);padding:16px;background:var(--surface);display:none}
+  .hentry.open .hbody{display:block}
+
+  /* ---------- Ranking ---------- */
+  .rank-wrap{overflow-x:auto}
+  table.rank{width:100%;border-collapse:collapse;min-width:620px}
+  table.rank th{
+    text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);
+    padding:9px 10px;border-bottom:1px solid var(--border);white-space:nowrap
+  }
+  table.rank td{padding:9px 10px;border-bottom:1px solid var(--border);font-size:13px}
+  table.rank tbody tr:hover{background:var(--surface2)}
+  table.rank .who{display:flex;align-items:center;gap:9px;font-weight:700}
+  table.rank .pos{color:var(--muted);font-weight:800;width:34px}
+  table.rank td.num{text-align:center;font-variant-numeric:tabular-nums}
+  table.rank tr.top .pos{color:var(--yellow)}
+  .bar{height:5px;border-radius:4px;background:var(--surface2);overflow:hidden;min-width:52px}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--cyan))}
+
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--surface2);border:1px solid var(--border2);border-radius:11px;padding:11px 18px;
+    font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:.25s;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,.4)
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media(max-width:900px){
+    .round{padding-top:0!important;gap:12px!important;width:230px}
+    .bracket{gap:34px}
+    .bracket .round-wrap:not(:last-child) .match::before{display:none}
+    .bracket .round-wrap:not(:last-child) .match::after{right:-17px;width:17px}
+    .bracket .round-wrap:not(:first-child) .match .lead{left:-17px;width:17px}
+  }
+  @media print{
+    header,.setup,.head-actions,.bracket-actions,.tabs{display:none!important}
+    body{background:#fff;color:#000}
+    .layout{grid-template-columns:1fr}
+    .card,.match{border-color:#bbb;background:#fff}
+    .slot .nm,.match-lbl{color:#000}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-icon">🏆</div>
+    <div>
+      <h1>Chaveamento Nintendo Switch Sports</h1>
+      <p>Sorteie as chaves, marque os vencedores e guarde o histórico dos campeonatos</p>
+    </div>
+  </div>
+  <div class="head-actions">
+    <button class="btn btn-ghost btn-sm" id="btnPrint">🖨️ Imprimir</button>
+    <button class="btn btn-ghost btn-sm" id="btnClearAll">🆕 Novo campeonato</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <noscript>
+    <div class="warn">
+      ⚠️ <b>O JavaScript está bloqueado neste visualizador.</b> Os botões não vão responder assim.
+      Baixe o arquivo <code>torneio.html</code> e abra direto no navegador (Chrome, Safari, Edge),
+      ou acesse a página publicada.
+    </div>
+  </noscript>
+  <div id="fatal"></div>
+
+  <div class="layout">
+
+    <!-- ================= PAINEL DE CONFIGURAÇÃO ================= -->
+    <div class="setup">
+      <div class="card">
+        <h2>🎮 Modalidade</h2>
+        <div class="sports" id="sports">
+          <button type="button" class="sport active" data-sport="boliche"><span class="ico">🎳</span><span class="nm">Boliche</span></button>
+          <button type="button" class="sport" data-sport="tenis"><span class="ico">🎾</span><span class="nm">Tênis</span></button>
+          <button type="button" class="sport" data-sport="badminton"><span class="ico">🏸</span><span class="nm">Badminton</span></button>
+          <button type="button" class="sport" data-sport="volei"><span class="ico">🏐</span><span class="nm">Vôlei</span></button>
+          <button type="button" class="sport" data-sport="futebol"><span class="ico">⚽</span><span class="nm">Futebol</span></button>
+          <button type="button" class="sport" data-sport="espada"><span class="ico">⚔️</span><span class="nm">Espada</span></button>
+          <button type="button" class="sport" data-sport="golfe"><span class="ico">⛳</span><span class="nm">Golfe</span></button>
+        </div>
+        <label class="fld" for="customSport">Outra modalidade (opcional)</label>
+        <input type="text" id="customSport" placeholder="Ex.: Mario Kart, Wii Sports…" maxlength="30">
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h2>👥 Participantes <span class="n" id="pCount">0</span></h2>
+        <div class="add-row">
+          <label class="photo-pick" id="photoPick" title="Escolher foto">
+            <span class="ph" id="photoPh">📷</span>
+            <img id="photoPreview" alt="" hidden>
+            <input type="file" id="photoInput" accept="image/*" class="vh">
+          </label>
+          <input type="text" id="pName" placeholder="Nome do participante" maxlength="24">
+        </div>
+        <button class="btn btn-primary" id="btnAdd" style="width:100%;margin-top:10px">+ Adicionar participante</button>
+        <p class="hint">Toque no quadrado 📷 para escolher a foto (ou tirar uma na hora, no celular). Sem foto, geramos um avatar com as iniciais — e dá para adicionar depois clicando na foto de quem já está na lista.</p>
+
+        <div class="plist" id="plist"></div>
+
+        <label class="opt"><input type="checkbox" id="optThird" checked> Disputa de 3º lugar</label>
+        <button class="btn btn-primary" id="btnGenerate" style="width:100%;margin-top:14px">🎲 Sortear chaves</button>
+      </div>
+    </div>
+
+    <!-- ================= PAINEL PRINCIPAL ================= -->
+    <div class="card">
+      <div class="tabs" id="tabs">
+        <button class="tab" data-tab="bracket">🏆 Chaveamento</button>
+        <button class="tab" data-tab="history">📚 Histórico <span class="cnt" id="histCount">0</span></button>
+        <button class="tab" data-tab="rank">📊 Ranking geral</button>
+      </div>
+      <div id="panel"></div>
+    </div>
+
+  </div>
+</div>
+
+<input type="file" id="importInput" accept="application/json,.json" class="vh">
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   Estado
+   ============================================================ */
+const SPORTS = [
+  {id:'boliche',   nm:'Boliche',   ico:'🎳'},
+  {id:'tenis',     nm:'Tênis',     ico:'🎾'},
+  {id:'badminton', nm:'Badminton', ico:'🏸'},
+  {id:'volei',     nm:'Vôlei',     ico:'🏐'},
+  {id:'futebol',   nm:'Futebol',   ico:'⚽'},
+  {id:'espada',    nm:'Espada',    ico:'⚔️'},
+  {id:'golfe',     nm:'Golfe',     ico:'⛳'}
+];
+
+const STORE   = 'nss-bracket-v1';   // campeonato em andamento
+const HSTORE  = 'nss-history-v1';   // campeonatos encerrados
+const MH = 104, PITCH = 120;        // precisa bater com --mh / --pitch-base do CSS
+
+let state = {
+  sport:'boliche',
+  customSport:'',
+  third:true,
+  participants:[],   // {id,name,photo}
+  rounds:null,       // [[{a,b,winner,sa,sb}]]  a/b = id do participante | null (bye)
+  thirdMatch:null,   // {a,b,winner,sa,sb}
+  savedAs:null       // id do registro no histórico, se já foi salvo
+};
+let history = [];          // [{id,date,sport,icon,players,rounds,thirdMatch,champion,runnerUp,third}]
+let tab = 'bracket';
+let openEntry = null;      // id do registro expandido no histórico
+let pendingPhoto = null;   // foto escolhida para o próximo participante
+let photoTarget = null;    // id do participante que está trocando de foto
+
+/* ============================================================
+   Persistência
+   ============================================================ */
+function save(){
+  try{ localStorage.setItem(STORE, JSON.stringify(state)); }
+  catch(e){ toast('⚠️ Não foi possível salvar (memória do navegador cheia).'); }
+}
+function saveHistory(){
+  try{ localStorage.setItem(HSTORE, JSON.stringify(history)); return true; }
+  catch(e){ toast('⚠️ Memória cheia: apague campeonatos antigos do histórico.'); return false; }
+}
+function load(){
+  try{
+    const raw = localStorage.getItem(STORE);
+    if(raw) state = Object.assign(state, JSON.parse(raw));
+  }catch(e){}
+  try{
+    const rawH = localStorage.getItem(HSTORE);
+    if(rawH) history = JSON.parse(rawH) || [];
+  }catch(e){ history = []; }
+}
+
+/* ============================================================
+   Utilidades
+   ============================================================ */
+const uid = () => Math.random().toString(36).slice(2,10);
+const byId = id => state.participants.find(p => p.id === id) || null;
+const finder = list => id => list.find(p => p.id === id) || null;
+const clone = o => JSON.parse(JSON.stringify(o));
+
+function initials(name){
+  const parts = String(name||'').trim().split(/\s+/);
+  return ((parts[0]?.[0]||'') + (parts.length>1 ? parts[parts.length-1][0] : '')).toUpperCase() || '?';
+}
+function avatar(p, size, extraCls){
+  const cls = 'av av-' + size + (extraCls ? ' ' + extraCls : '');
+  if(!p) return `<div class="${cls}" style="background:var(--surface2);color:var(--muted)">–</div>`;
+  if(p.photo) return `<img class="${cls}" src="${p.photo}" alt="">`;
+  return `<div class="${cls}">${initials(p.name)}</div>`;
+}
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('show'), 2800);
+}
+function sportName(){
+  if(state.customSport.trim()) return state.customSport.trim();
+  const s = SPORTS.find(s => s.id === state.sport);
+  return s ? s.nm : 'Torneio';
+}
+function sportIcon(){
+  if(state.customSport.trim()) return '🎮';
+  const s = SPORTS.find(s => s.id === state.sport);
+  return s ? s.ico : '🎮';
+}
+function roundTitle(nMatches, isLast){
+  if(isLast || nMatches === 1) return 'Final';
+  if(nMatches === 2) return 'Semifinal';
+  if(nMatches === 4) return 'Quartas de final';
+  if(nMatches === 8) return 'Oitavas de final';
+  if(nMatches === 16) return 'Fase de 32';
+  return nMatches * 2 + ' jogadores';
+}
+function fmtDate(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-BR') + ' · ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+/* Recorta em quadrado e reduz a imagem — mantém o localStorage leve */
+function resizeImage(src, size, quality){
+  return new Promise(resolve => {
+    if(!src) return resolve(null);
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = c.height = size;
+      const ctx = c.getContext('2d');
+      const side = Math.min(img.width, img.height);
+      ctx.drawImage(img, (img.width-side)/2, (img.height-side)/2, side, side, 0, 0, size, size);
+      resolve(c.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+function readPhoto(file, cb){
+  if(!file.type.startsWith('image/')){ toast('⚠️ Escolha um arquivo de imagem.'); return; }
+  const reader = new FileReader();
+  reader.onload = async e => {
+    const data = await resizeImage(e.target.result, 220, 0.78);
+    if(!data){ toast('⚠️ Não consegui ler essa imagem.'); return; }
+    cb(data);
+  };
+  reader.onerror = () => toast('⚠️ Não consegui ler esse arquivo.');
+  reader.readAsDataURL(file);
+}
+
+/* ============================================================
+   Sorteio da chave
+   ============================================================ */
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function mk(a, b){ return {a: a || null, b: b || null, winner: null, sa: '', sb: ''}; }
+
+function generateBracket(){
+  const ps = state.participants;
+  if(ps.length < 2){ toast('⚠️ Adicione pelo menos 2 participantes.'); return; }
+
+  const ids = shuffle(ps.map(p => p.id));
+  const n = ids.length;
+  let size = 1; while(size < n) size *= 2;
+  const byes = size - n;
+
+  // 1ª rodada: os primeiros `byes` confrontos recebem um jogador sozinho (passa direto)
+  const first = [];
+  let k = 0;
+  for(let i = 0; i < byes; i++) first.push(mk(ids[k++], null));
+  while(k < n) first.push(mk(ids[k++], ids[k++]));
+
+  const rounds = [first];
+  let count = size / 2;
+  while(count > 1){
+    count /= 2;
+    rounds.push(Array.from({length: count}, () => mk(null, null)));
+  }
+
+  state.rounds = rounds;
+  state.thirdMatch = null;
+  state.savedAs = null;
+  recompute();
+  tab = 'bracket';
+  save(); render();
+  toast(`🎲 Chave sorteada: ${n} participantes${byes ? ', ' + byes + ' com BYE' : ''}`);
+}
+
+/* Propaga vencedores para frente e invalida resultados que deixaram de fazer sentido */
+function recompute(){
+  const R = state.rounds;
+  if(!R) return;
+
+  // BYE na 1ª rodada avança automaticamente
+  R[0].forEach(m => {
+    if(m.a && !m.b) m.winner = m.a;
+    if(!m.a && m.b) m.winner = m.b;
+    if(!m.a && !m.b) m.winner = null;
+  });
+
+  for(let r = 1; r < R.length; r++){
+    for(let i = 0; i < R[r].length; i++){
+      const m = R[r][i];
+      m.a = R[r-1][2*i].winner   || null;
+      m.b = R[r-1][2*i+1].winner || null;
+      // a partir da 2ª rodada um confronto só vale com os dois lados definidos
+      const invalid = !m.a || !m.b || (m.winner !== m.a && m.winner !== m.b);
+      if(m.winner && invalid){ m.winner = null; m.sa = ''; m.sb = ''; }
+    }
+  }
+
+  // Disputa de 3º lugar: perdedores da penúltima rodada.
+  // Só existe se as duas semifinais forem confrontos reais (sem BYE).
+  const semis = R.length >= 2 ? R[R.length - 2] : null;
+  const realSemis = semis && semis.length === 2 && semis.every(m => m.a && m.b);
+  if(state.third && realSemis){
+    const losers = semis.map(m => m.winner ? (m.winner === m.a ? m.b : m.a) : null);
+    const t = state.thirdMatch || mk(null, null);
+    t.a = losers[0]; t.b = losers[1];
+    if(t.winner && (!t.a || !t.b || (t.winner !== t.a && t.winner !== t.b))){ t.winner = null; t.sa = ''; t.sb = ''; }
+    state.thirdMatch = t;
+  } else {
+    state.thirdMatch = null;
+  }
+}
+
+function championId(){
+  const R = state.rounds;
+  return R ? R[R.length-1][0].winner : null;
+}
+function setWinner(r, i, which){
+  const m = (r === 'third') ? state.thirdMatch : state.rounds[r][i];
+  if(!m) return;
+  const id = which === 'a' ? m.a : m.b;
+  if(!id) return;
+  m.winner = (m.winner === id) ? null : id;   // clicar de novo desmarca
+  if(r !== 'third') recompute();
+  save(); render();
+}
+function setScore(r, i, which, val){
+  const m = (r === 'third') ? state.thirdMatch : state.rounds[r][i];
+  if(!m) return;
+  m[which === 'a' ? 'sa' : 'sb'] = val;
+  save();
+}
+
+/* ============================================================
+   Histórico
+   ============================================================ */
+async function archiveTournament(){
+  const R = state.rounds, champ = championId();
+  if(!champ){ toast('⚠️ Defina o vencedor da final antes de salvar.'); return; }
+
+  const finalM = R[R.length-1][0];
+  const runnerUp = finalM.winner === finalM.a ? finalM.b : finalM.a;
+  const third = state.thirdMatch && state.thirdMatch.winner ? state.thirdMatch.winner : null;
+
+  // fotos menores no histórico: 96px é suficiente e cabe muito mais campeonato
+  const players = await Promise.all(state.participants.map(async p => ({
+    id: p.id, name: p.name, photo: p.photo ? await resizeImage(p.photo, 96, 0.7) : null
+  })));
+
+  const existing = state.savedAs ? history.find(h => h.id === state.savedAs) : null;
+  const entry = {
+    id: existing ? existing.id : uid(),
+    date: existing ? existing.date : new Date().toISOString(),
+    updated: existing ? new Date().toISOString() : null,
+    sport: sportName(), icon: sportIcon(),
+    players, rounds: clone(R), thirdMatch: clone(state.thirdMatch),
+    champion: champ, runnerUp: runnerUp || null, third
+  };
+
+  if(existing) history[history.indexOf(existing)] = entry;
+  else history.unshift(entry);
+
+  if(!saveHistory()){ if(!existing) history.shift(); return; }
+  state.savedAs = entry.id;
+  save(); render();
+  toast(existing ? '💾 Registro atualizado no histórico.' : '🏅 Campeonato salvo no histórico!');
+}
+
+function deleteEntry(id){
+  const e = history.find(h => h.id === id);
+  if(!e) return;
+  if(!confirm(`Apagar o campeonato de ${e.sport} de ${fmtDate(e.date)}?`)) return;
+  history = history.filter(h => h.id !== id);
+  if(state.savedAs === id){ state.savedAs = null; save(); }
+  saveHistory(); render();
+  toast('🗑️ Registro apagado.');
+}
+
+/* Ranking geral: agrupa por nome (o mesmo jogador tem id diferente em cada campeonato) */
+function ranking(){
+  const map = new Map();
+  const get = name => {
+    const key = name.trim().toLowerCase();
+    if(!map.has(key)) map.set(key, {name:name.trim(), photo:null, titles:0, runner:0, third:0, cups:0, w:0, l:0});
+    return map.get(key);
+  };
+
+  history.forEach(h => {
+    const find = finder(h.players);
+    h.players.forEach(p => {
+      const s = get(p.name);
+      s.cups++;
+      if(p.photo && !s.photo) s.photo = p.photo;   // foto mais recente disponível
+    });
+    const champ = find(h.champion), run = find(h.runnerUp), thd = find(h.third);
+    if(champ) get(champ.name).titles++;
+    if(run)   get(run.name).runner++;
+    if(thd)   get(thd.name).third++;
+
+    const all = h.rounds.flat().concat(h.thirdMatch ? [h.thirdMatch] : []);
+    all.forEach(m => {
+      if(!m.a || !m.b || !m.winner) return;        // BYE ou partida não decidida não contam
+      const wp = find(m.winner), lp = find(m.winner === m.a ? m.b : m.a);
+      if(wp) get(wp.name).w++;
+      if(lp) get(lp.name).l++;
+    });
+  });
+
+  return [...map.values()].sort((x,y) =>
+    y.titles - x.titles || y.runner - x.runner || y.third - x.third || y.w - x.w || x.name.localeCompare(y.name)
+  );
+}
+
+/* ============================================================
+   Render — painel de configuração
+   ============================================================ */
+function renderSetup(){
+  // os botões de modalidade são HTML fixo (aparecem mesmo sem JS) — aqui só marcamos o escolhido
+  const custom = !!state.customSport.trim();
+  document.querySelectorAll('#sports .sport').forEach(el => {
+    el.classList.toggle('active', !custom && el.dataset.sport === state.sport);
+  });
+
+  document.getElementById('pCount').textContent = state.participants.length;
+
+  const list = document.getElementById('plist');
+  list.innerHTML = state.participants.length
+    ? state.participants.map(p => `
+        <div class="prow">
+          <span class="ph-btn" data-photo="${p.id}" title="Trocar foto">${avatar(p, 32)}</span>
+          <span class="nm" title="${esc(p.name)}">${esc(p.name)}</span>
+          <button class="x" data-del="${p.id}" title="Remover">✕</button>
+        </div>`).join('')
+    : '<div class="empty">Nenhum participante ainda.<br>Adicione pelo menos 2 para sortear.</div>';
+
+  document.getElementById('btnGenerate').disabled = state.participants.length < 2;
+  document.getElementById('histCount').textContent = history.length;
+  [...document.querySelectorAll('.tab')].forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+}
+
+/* ============================================================
+   Render — chaveamento (usado pelo torneio atual e pelo histórico)
+   ============================================================ */
+function slotHTML(m, r, i, which, ctx){
+  const id = which === 'a' ? m.a : m.b;
+  const p  = ctx.find(id);
+  const isBye = (r === 0 && !id && (which === 'b' ? !!m.a : !!m.b));
+
+  if(!p){
+    const txt = isBye ? 'BYE — passa direto' : 'A definir';
+    return `<div class="slot empty-slot"><div class="av av-32" style="background:var(--surface2);color:var(--muted)">–</div>
+            <span class="nm">${txt}</span></div>`;
+  }
+  const decided = !!m.winner;
+  const cls = decided ? (m.winner === id ? 'win' : 'lose') : '';
+  const sc  = which === 'a' ? m.sa : m.sb;
+  const attrs = ctx.readOnly ? '' : `data-r="${r}" data-i="${i}" data-w="${which}" title="Clique para marcar como vencedor"`;
+  return `
+    <div class="slot ${cls}" ${attrs}>
+      ${avatar(p, 32)}
+      <span class="nm">${esc(p.name)}</span>
+      <span class="tick">${decided && m.winner === id ? '✅' : ''}</span>
+      <input class="sc" type="number" inputmode="numeric" placeholder="–" value="${esc(sc || '')}"
+             ${ctx.readOnly ? 'disabled' : `data-sr="${r}" data-si="${i}" data-sw="${which}"`} title="Placar (opcional)">
+    </div>`;
+}
+function matchHTML(m, r, i, label, ctx){
+  return `<div class="match ${m.winner ? 'decided' : ''}">
+            <i class="lead"></i>
+            <div class="match-lbl">${label}</div>
+            ${slotHTML(m,r,i,'a',ctx)}
+            ${slotHTML(m,r,i,'b',ctx)}
+          </div>`;
+}
+function bracketHTML(rounds, thirdMatch, players, readOnly){
+  const ctx = {find: finder(players), readOnly};
+  let html = `<div class="bracket-scroll ${readOnly ? 'ro' : ''}"><div class="bracket" style="padding-top:30px">`;
+  rounds.forEach((round, r) => {
+    const pad  = 60 * (Math.pow(2, r) - 1);              // alinhamento vertical da rodada
+    const gap  = PITCH * Math.pow(2, r) - MH;            // espaço entre confrontos
+    const half = (MH + gap) / 2;                         // metade do conector vertical
+    html += `<div class="round-wrap">
+               <span class="round-title">${roundTitle(round.length, r === rounds.length-1)}</span>
+               <div class="round" style="--pad:${pad}px;--gap:${gap}px;--half:${half}px">`;
+    round.forEach((m, i) => { html += matchHTML(m, r, i, `Partida ${i+1}`, ctx); });
+    html += '</div></div>';
+  });
+  html += '</div></div>';
+
+  if(thirdMatch){
+    html += `<div class="third ${readOnly ? 'ro' : ''}"><span class="round-title">🥉 Disputa de 3º lugar</span>
+               ${matchHTML(thirdMatch, 'third', 0, 'Terceiro lugar', ctx)}
+             </div>`;
+  }
+  return html;
+}
+
+function panelBracket(){
+  if(!state.rounds){
+    return `<div class="placeholder">
+        <div class="big">🎮🏆</div>
+        <h3>Nenhuma chave sorteada ainda</h3>
+        <p>Escolha a modalidade, cadastre os participantes com foto<br>e clique em <b>Sortear chaves</b>.</p>
+      </div>`;
+  }
+
+  const R = state.rounds;
+  const champ = byId(championId());
+  const finalM = R[R.length-1][0];
+  const vice = champ ? byId(finalM.winner === finalM.a ? finalM.b : finalM.a) : null;
+  const third = state.thirdMatch && state.thirdMatch.winner ? byId(state.thirdMatch.winner) : null;
+  const saved = state.savedAs && history.some(h => h.id === state.savedAs);
+
+  let html = `
+    <div class="bracket-head">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <span class="badge">${sportIcon()} ${esc(sportName())}</span>
+        <span class="badge">👥 ${state.participants.length} participantes</span>
+        <span class="badge">🔁 ${R.length} rodadas</span>
+      </div>
+      <div class="head-actions bracket-actions">
+        <button class="btn btn-sm" id="btnReshuffle">🎲 Sortear de novo</button>
+        <button class="btn btn-sm" id="btnClearResults">↺ Limpar resultados</button>
+      </div>
+    </div>`;
+
+  if(champ){
+    html += `
+      <div class="champ">
+        ${avatar(champ, 72)}
+        <div>
+          <div class="lbl">Campeão · ${esc(sportName())}</div>
+          <div class="nm">${esc(champ.name)}</div>
+          <div class="sub">Venceu o torneio em ${R.length} ${R.length > 1 ? 'rodadas' : 'rodada'} 🎉</div>
+        </div>
+        <div class="podium">
+          <div class="pod"><span class="pos">🥇</span><span class="pn">${esc(champ.name)}</span></div>
+          ${vice  ? `<div class="pod"><span class="pos">🥈</span><span class="pn">${esc(vice.name)}</span></div>` : ''}
+          ${third ? `<div class="pod"><span class="pos">🥉</span><span class="pn">${esc(third.name)}</span></div>` : ''}
+          <button class="btn ${saved ? '' : 'btn-gold'}" id="btnArchive">
+            ${saved ? '💾 Atualizar no histórico' : '🏅 Salvar no histórico'}
+          </button>
+        </div>
+      </div>`;
+  }
+
+  html += bracketHTML(R, state.thirdMatch, state.participants, false);
+  return html;
+}
+
+function panelHistory(){
+  if(!history.length){
+    return `<div class="placeholder">
+        <div class="big">📚</div>
+        <h3>Nenhum campeonato salvo ainda</h3>
+        <p>Quando a final for decidida, use <b>Salvar no histórico</b><br>para guardar o resultado aqui.</p>
+      </div>`;
+  }
+
+  const total = history.length;
+  let html = `<div class="bracket-head">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <span class="badge">📚 ${total} ${total > 1 ? 'campeonatos' : 'campeonato'}</span>
+      </div>
+      <div class="head-actions">
+        <button class="btn btn-sm" id="btnExport">⬇️ Exportar backup</button>
+        <button class="btn btn-sm" id="btnImport">⬆️ Importar backup</button>
+      </div>
+    </div><div class="hist">`;
+
+  history.forEach(h => {
+    const find = finder(h.players);
+    const c = find(h.champion), r = find(h.runnerUp), t = find(h.third);
+    const open = openEntry === h.id;
+    html += `
+      <div class="hentry ${open ? 'open' : ''}">
+        <div class="hhead">
+          <div class="hicon">${h.icon || '🎮'}</div>
+          <div class="hinfo">
+            <div class="t">${esc(h.sport)}</div>
+            <div class="d">${fmtDate(h.date)} · ${h.players.length} participantes${h.updated ? ' · atualizado' : ''}</div>
+          </div>
+          <div class="hpodium">
+            ${c ? `<span class="hp g">${avatar(c,24)}🥇 ${esc(c.name)}</span>` : ''}
+            ${r ? `<span class="hp">${avatar(r,24)}🥈 ${esc(r.name)}</span>` : ''}
+            ${t ? `<span class="hp">${avatar(t,24)}🥉 ${esc(t.name)}</span>` : ''}
+          </div>
+          <div class="hactions">
+            <button class="btn btn-sm" data-open="${h.id}">${open ? 'Ocultar chave' : 'Ver chave'}</button>
+            <button class="btn btn-sm" data-delh="${h.id}" title="Apagar">🗑️</button>
+          </div>
+        </div>
+        <div class="hbody">${open ? bracketHTML(h.rounds, h.thirdMatch, h.players, true) : ''}</div>
+      </div>`;
+  });
+  return html + '</div>';
+}
+
+function panelRank(){
+  const rows = ranking();
+  if(!rows.length){
+    return `<div class="placeholder">
+        <div class="big">📊</div>
+        <h3>Ranking vazio</h3>
+        <p>O ranking soma os resultados de todos os campeonatos<br>salvos no histórico.</p>
+      </div>`;
+  }
+  let html = `<div class="bracket-head">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <span class="badge">🏅 ${history.length} ${history.length > 1 ? 'campeonatos somados' : 'campeonato somado'}</span>
+        <span class="badge">👥 ${rows.length} jogadores</span>
+      </div>
+    </div>
+    <div class="rank-wrap"><table class="rank">
+      <thead><tr>
+        <th></th><th>Participante</th><th class="num">🥇</th><th class="num">🥈</th><th class="num">🥉</th>
+        <th class="num">Camp.</th><th class="num">Vitórias</th><th class="num">Derrotas</th><th>Aproveitamento</th>
+      </tr></thead><tbody>`;
+
+  rows.forEach((r, i) => {
+    const games = r.w + r.l;
+    const pct = games ? Math.round(r.w / games * 100) : 0;
+    html += `<tr class="${i === 0 && r.titles ? 'top' : ''}">
+        <td class="pos">${i+1}º</td>
+        <td><span class="who">${avatar(r,32)} ${esc(r.name)}</span></td>
+        <td class="num">${r.titles || '–'}</td>
+        <td class="num">${r.runner || '–'}</td>
+        <td class="num">${r.third || '–'}</td>
+        <td class="num">${r.cups}</td>
+        <td class="num">${r.w}</td>
+        <td class="num">${r.l}</td>
+        <td><div style="display:flex;align-items:center;gap:8px">
+          <div class="bar" style="flex:1"><i style="width:${pct}%"></i></div>
+          <span style="font-size:12px;color:var(--muted);min-width:38px">${games ? pct + '%' : '–'}</span>
+        </div></td>
+      </tr>`;
+  });
+  return html + '</tbody></table></div>';
+}
+
+function render(){
+  renderSetup();
+  const panel = document.getElementById('panel');
+  panel.innerHTML = tab === 'history' ? panelHistory() : tab === 'rank' ? panelRank() : panelBracket();
+}
+
+/* ============================================================
+   Eventos
+   ============================================================ */
+// abas
+document.getElementById('tabs').addEventListener('click', e => {
+  const b = e.target.closest('[data-tab]');
+  if(!b) return;
+  tab = b.dataset.tab; render();
+});
+
+// modalidade
+document.getElementById('sports').addEventListener('click', e => {
+  const el = e.target.closest('[data-sport]');
+  if(!el) return;
+  state.sport = el.dataset.sport;
+  state.customSport = '';
+  document.getElementById('customSport').value = '';
+  save(); render();
+});
+document.getElementById('customSport').addEventListener('input', e => {
+  state.customSport = e.target.value; save(); render();
+});
+
+// foto — o <label> abre o seletor nativamente (funciona em iOS/Android/desktop)
+const photoInput = document.getElementById('photoInput');
+function showPreview(data){
+  const img = document.getElementById('photoPreview'), ph = document.getElementById('photoPh');
+  if(data){ img.src = data; img.hidden = false; ph.hidden = true; }
+  else { img.removeAttribute('src'); img.hidden = true; ph.hidden = false; }
+}
+document.getElementById('photoPick').addEventListener('click', e => {
+  // clique real do usuário no quadrado = foto do próximo participante.
+  // (o clique programático, ao trocar a foto de alguém da lista, tem target = input)
+  if(e.target !== photoInput) photoTarget = null;
+});
+photoInput.addEventListener('change', e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if(!f) return;
+  const target = photoTarget;
+  readPhoto(f, data => {
+    if(target){
+      const p = byId(target);
+      if(p){ p.photo = data; save(); render(); toast('📷 Foto atualizada.'); }
+    } else {
+      pendingPhoto = data;
+      showPreview(data);
+    }
+    photoTarget = null;
+  });
+});
+
+// adicionar participante
+function addParticipant(){
+  const input = document.getElementById('pName');
+  const name = input.value.trim();
+  if(!name){ toast('⚠️ Digite o nome do participante.'); input.focus(); return; }
+  if(state.participants.some(p => p.name.toLowerCase() === name.toLowerCase())){
+    toast('⚠️ Já existe alguém com esse nome.'); return;
+  }
+  state.participants.push({id: uid(), name, photo: pendingPhoto});
+  pendingPhoto = null;
+  input.value = '';
+  showPreview(null);
+  input.focus();
+  save(); render();
+}
+document.getElementById('btnAdd').addEventListener('click', addParticipant);
+document.getElementById('pName').addEventListener('keydown', e => { if(e.key === 'Enter') addParticipant(); });
+
+// lista de participantes: remover / trocar foto
+document.getElementById('plist').addEventListener('click', e => {
+  const ph = e.target.closest('[data-photo]');
+  if(ph){ photoTarget = ph.dataset.photo; photoInput.click(); return; }
+
+  const b = e.target.closest('[data-del]');
+  if(!b) return;
+  state.participants = state.participants.filter(p => p.id !== b.dataset.del);
+  if(state.rounds){
+    state.rounds = null; state.thirdMatch = null; state.savedAs = null;
+    toast('A chave foi desfeita — sorteie novamente.');
+  }
+  save(); render();
+});
+
+// 3º lugar
+document.getElementById('optThird').addEventListener('change', e => {
+  state.third = e.target.checked;
+  recompute(); save(); render();
+});
+
+document.getElementById('btnGenerate').addEventListener('click', generateBracket);
+
+// painel principal (chaveamento / histórico / ranking)
+document.getElementById('panel').addEventListener('click', e => {
+  if(e.target.classList.contains('sc')) return;   // clique no placar não escolhe vencedor
+
+  if(e.target.closest('#btnReshuffle')){
+    if(confirm('Sortear as chaves novamente? Todos os resultados atuais serão perdidos.')) generateBracket();
+    return;
+  }
+  if(e.target.closest('#btnClearResults')){
+    if(!confirm('Limpar todos os resultados mantendo o sorteio atual?')) return;
+    state.rounds.forEach(rd => rd.forEach(m => { m.winner = null; m.sa = ''; m.sb = ''; }));
+    if(state.thirdMatch){ state.thirdMatch.winner = null; state.thirdMatch.sa = ''; state.thirdMatch.sb = ''; }
+    recompute(); save(); render();
+    toast('↺ Resultados limpos.');
+    return;
+  }
+  if(e.target.closest('#btnArchive')){ archiveTournament(); return; }
+  if(e.target.closest('#btnExport')){ exportHistory(); return; }
+  if(e.target.closest('#btnImport')){ document.getElementById('importInput').click(); return; }
+
+  const op = e.target.closest('[data-open]');
+  if(op){ openEntry = openEntry === op.dataset.open ? null : op.dataset.open; render(); return; }
+  const dl = e.target.closest('[data-delh]');
+  if(dl){ deleteEntry(dl.dataset.delh); return; }
+
+  const slot = e.target.closest('.slot[data-w]');
+  if(!slot) return;
+  const r = slot.dataset.r === 'third' ? 'third' : Number(slot.dataset.r);
+  setWinner(r, Number(slot.dataset.i), slot.dataset.w);
+});
+
+// placares
+document.getElementById('panel').addEventListener('input', e => {
+  if(!e.target.classList.contains('sc') || e.target.disabled) return;
+  const r = e.target.dataset.sr === 'third' ? 'third' : Number(e.target.dataset.sr);
+  setScore(r, Number(e.target.dataset.si), e.target.dataset.sw, e.target.value);
+});
+
+/* backup do histórico */
+function exportHistory(){
+  if(!history.length){ toast('⚠️ Nada para exportar.'); return; }
+  const blob = new Blob([JSON.stringify(history, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'campeonatos-switch-sports.json';
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  toast('⬇️ Backup exportado.');
+}
+document.getElementById('importInput').addEventListener('change', e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try{
+      const data = JSON.parse(ev.target.result);
+      if(!Array.isArray(data)) throw 0;
+      const known = new Set(history.map(h => h.id));
+      const novos = data.filter(h => h && h.id && h.rounds && !known.has(h.id));
+      history = history.concat(novos).sort((a,b) => new Date(b.date) - new Date(a.date));
+      saveHistory(); render();
+      toast(novos.length ? `⬆️ ${novos.length} campeonato(s) importado(s).` : 'Nenhum registro novo no arquivo.');
+    }catch(err){ toast('⚠️ Arquivo de backup inválido.'); }
+  };
+  reader.readAsText(f);
+});
+
+// cabeçalho
+document.getElementById('btnPrint').addEventListener('click', () => window.print());
+document.getElementById('btnClearAll').addEventListener('click', () => {
+  if(!confirm('Começar um campeonato novo? Os participantes e a chave atual serão apagados.\n\nO histórico de campeonatos salvos é mantido.')) return;
+  state = {sport:'boliche', customSport:'', third:true, participants:[], rounds:null, thirdMatch:null, savedAs:null};
+  pendingPhoto = null; photoTarget = null;
+  document.getElementById('customSport').value = '';
+  document.getElementById('optThird').checked = true;
+  showPreview(null);
+  tab = 'bracket';
+  save(); render();
+  toast('🆕 Pronto para um novo campeonato.');
+});
+
+/* ============================================================
+   Boot
+   ============================================================ */
+function showFatal(msg){
+  const el = document.getElementById('fatal');
+  if(el) el.innerHTML = `<div class="warn">⚠️ <b>Algo deu errado ao carregar o app:</b> ${esc(msg)}<br>
+    Tente abrir o arquivo direto no navegador. Se continuar, me mande essa mensagem.</div>`;
+}
+window.addEventListener('error', e => showFatal(e.message || 'erro desconhecido'));
+
+try{
+  load();
+  document.getElementById('customSport').value = state.customSport || '';
+  document.getElementById('optThird').checked = state.third !== false;
+  if(state.rounds) recompute();
+  render();
+}catch(err){
+  showFatal(err && err.message ? err.message : String(err));
+}
+</script>
+</body>
+</html>
