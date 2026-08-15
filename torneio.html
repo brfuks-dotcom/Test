@@ -53,6 +53,9 @@
 
   .wrap{max-width:1500px;margin:0 auto;padding:22px 24px 60px}
   .layout{display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start}
+  /* sem isto, itens de grid não encolhem abaixo do próprio conteúdo (a barra de abas,
+     por exemplo) e a página fica mais larga que a tela do celular */
+  .layout > *{min-width:0}
   @media(max-width:1000px){.layout{grid-template-columns:1fr}}
 
   .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px}
@@ -99,6 +102,7 @@
 
   /* ---------- Placar corrido ---------- */
   .board{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start}
+  .board > *{min-width:0}
   @media(max-width:1150px){.board{grid-template-columns:1fr}}
   .bsec h3{
     font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);
@@ -331,6 +335,14 @@
   }
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+  @media(max-width:620px){
+    /* telas estreitas: as três abas cabem sem precisar arrastar */
+    .tabs{flex-wrap:wrap;gap:2px}
+    .tab{padding:9px 10px;font-size:12.5px}
+    .tab .cnt{margin-left:4px;padding:1px 6px}
+    .wrap{padding:16px 12px 50px}
+    .card{padding:14px}
+  }
   @media(max-width:900px){
     .round{padding-top:0!important;gap:12px!important;width:230px}
     .bracket{gap:34px}
@@ -459,7 +471,7 @@
    unit = como a pontuação é chamada na tela                                                   */
 const SPORTS = [
   {id:'boliche',   nm:'Boliche',   ico:'🎳', fmt:'score', dir:'high', unit:'pontos'},
-  {id:'tenis',     nm:'Tênis',     ico:'🎾'},
+  {id:'tenis',     nm:'Tênis',     ico:'🎾', fmt:'score', dir:'high', unit:'pontos'},
   {id:'badminton', nm:'Badminton', ico:'🏸'},
   {id:'volei',     nm:'Vôlei',     ico:'🏐'},
   {id:'futebol',   nm:'Futebol',   ico:'⚽'},
