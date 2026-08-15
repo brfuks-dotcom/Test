@@ -83,6 +83,17 @@
   .fmt:hover{border-color:var(--border2);background:#26325c}
   .fmt.active{border-color:var(--blue);background:linear-gradient(135deg,rgba(59,167,255,.22),rgba(34,211,238,.08))}
   .fmt .fico{font-size:20px;flex:0 0 24px;text-align:center}
+  .dirs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .dir{
+    font-family:inherit;font-size:12px;font-weight:700;color:var(--text);padding:9px 6px;
+    background:var(--surface2);border:1px solid var(--border);border-radius:11px;cursor:pointer
+  }
+  .dir:hover{border-color:var(--border2);background:#26325c}
+  .dir.active{border-color:var(--blue);background:linear-gradient(135deg,rgba(59,167,255,.22),rgba(34,211,238,.08))}
+  .limit{
+    display:flex;gap:8px;align-items:flex-start;background:rgba(230,0,18,.14);border:1px solid var(--red2);
+    border-radius:11px;padding:9px 12px;margin-top:12px;font-size:12px;line-height:1.5
+  }
   .fmt b{display:block;font-size:12.5px}
   .fmt i{display:block;font-size:11px;color:var(--muted);font-style:normal;line-height:1.4;margin-top:1px}
 
@@ -389,8 +400,16 @@
           </button>
           <button type="button" class="fmt active" data-format="score">
             <span class="fico">📋</span>
-            <span><b>Pontuação corrida</b><i>Todos jogam juntos, vence quem fizer mais pontos</i></span>
+            <span><b>Pontuação corrida</b><i>Todos jogam juntos, o placar decide</i></span>
           </button>
+        </div>
+
+        <div id="dirWrap">
+          <label class="fld">Critério de vitória</label>
+          <div class="dirs" id="dirs">
+            <button type="button" class="dir active" data-dir="high">🔼 Mais pontos</button>
+            <button type="button" class="dir" data-dir="low">🔽 Menos pontos</button>
+          </div>
         </div>
       </div>
 
@@ -434,14 +453,18 @@
 /* ============================================================
    Estado
    ============================================================ */
+/* fmt  = formato natural da modalidade
+   dir  = 'high' vence quem faz mais pontos | 'low' vence quem faz menos (tacadas no golfe)
+   max  = limite de jogadores por partida (só vale na pontuação corrida, em que todos jogam juntos)
+   unit = como a pontuação é chamada na tela                                                   */
 const SPORTS = [
-  {id:'boliche',   nm:'Boliche',   ico:'🎳'},
+  {id:'boliche',   nm:'Boliche',   ico:'🎳', fmt:'score', dir:'high', unit:'pontos'},
   {id:'tenis',     nm:'Tênis',     ico:'🎾'},
   {id:'badminton', nm:'Badminton', ico:'🏸'},
   {id:'volei',     nm:'Vôlei',     ico:'🏐'},
   {id:'futebol',   nm:'Futebol',   ico:'⚽'},
   {id:'espada',    nm:'Espada',    ico:'⚔️'},
-  {id:'golfe',     nm:'Golfe',     ico:'⛳'},
+  {id:'golfe',     nm:'Golfe',     ico:'⛳', fmt:'score', dir:'low', max:4, unit:'tacadas'},
   {id:'basquete',  nm:'Basquete',  ico:'🏀'}
 ];
 
@@ -453,6 +476,7 @@ let state = {
   sport:'boliche',
   customSport:'',
   format:'score',    // 'bracket' (chave eliminatória) | 'score' (pontuação corrida)
+  scoreDir:'high',   // na pontuação corrida: 'high' mais pontos vence | 'low' menos pontos vence
   third:true,
   participants:[],   // {id,name,photo}
   rounds:null,       // [[{a,b,winner,sa,sb}]]  a/b = id do participante | null (bye)
@@ -461,10 +485,19 @@ let state = {
   savedAs:null       // id do registro no histórico, se já foi salvo
 };
 
-/* Boliche todo mundo joga junto e vence quem fizer mais pontos;
+/* Boliche e golfe todo mundo joga junto e o placar decide;
    as demais modalidades são confrontos 1 x 1. */
-const defaultFormat = sportId => sportId === 'boliche' ? 'score' : 'bracket';
-const isScoreMode = () => state.format === 'score';
+const sportMeta = id => SPORTS.find(s => s.id === id) || {};
+const defaultFormat = id => sportMeta(id).fmt || 'bracket';
+const defaultDir    = id => sportMeta(id).dir || 'high';
+const isScoreMode   = () => state.format === 'score';
+const lowWins       = () => state.scoreDir === 'low';
+/* limite de jogadores por partida — só se aplica quando todos jogam juntos */
+const maxPlayers    = () => (isScoreMode() && !state.customSport.trim()) ? (sportMeta(state.sport).max || null) : null;
+function scoreUnit(){
+  if(state.customSport.trim()) return 'pontos';
+  return sportMeta(state.sport).unit || 'pontos';
+}
 let history = [];          // [{id,date,sport,icon,players,rounds,thirdMatch,champion,runnerUp,third}]
 let tab = 'bracket';
 let openEntry = null;      // id do registro expandido no histórico
@@ -692,6 +725,11 @@ function applyScore(r, i){
    ============================================================ */
 function startBoard(){
   if(state.participants.length < 2){ toast('⚠️ Adicione pelo menos 2 participantes.'); return; }
+  const max = maxPlayers();
+  if(max && state.participants.length > max){
+    toast(`⚠️ ${sportName()} comporta no máximo ${max} jogadores por partida — você tem ${state.participants.length}.`);
+    return;
+  }
   state.board = {order: shuffle(state.participants.map(p => p.id)), scores: {}};
   state.savedAs = null;
   tab = 'bracket';
@@ -704,8 +742,9 @@ function setBoardScore(id, val){
   save();
 }
 
-/* Classificação: quem tem pontuação, do maior para o menor (empate divide a posição);
-   quem ainda não tem fica de fora, na lista de pendentes. */
+/* Classificação: do melhor para o pior conforme o critério da modalidade
+   (mais pontos no boliche, menos tacadas no golfe); empate divide a posição
+   e quem ainda não pontuou fica na lista de pendentes. */
 function standings(){
   const ranked = [], pending = [];
   (state.board ? state.board.order : []).forEach(id => {
@@ -714,7 +753,7 @@ function standings(){
     const n = parseInt(state.board.scores[id], 10);
     if(isNaN(n)) pending.push({p}); else ranked.push({p, score:n});
   });
-  ranked.sort((a,b) => b.score - a.score);
+  ranked.sort((a,b) => lowWins() ? a.score - b.score : b.score - a.score);
   let pos = 0, prev = null;
   ranked.forEach((r, i) => { if(r.score !== prev){ pos = i + 1; prev = r.score; } r.pos = pos; });
   return {ranked, pending};
@@ -724,13 +763,14 @@ function standings(){
 function boardResult(){
   const {ranked, pending} = standings();
   if(pending.length || ranked.length < 2) return null;
-  if(ranked[0].score === ranked[1].score) return {tie:true};
-  const r2 = ranked[1], r3 = ranked[2];
-  return {
-    champion: ranked[0].p.id,
-    runnerUp: (r3 && r3.score === r2.score) ? null : r2.p.id,   // empate no 2º não define vice
-    third: (r3 && r3.score < r2.score && !(ranked[3] && ranked[3].score === r3.score)) ? r3.p.id : null
+  if(ranked[0].pos === ranked[1].pos) return {tie:true};
+
+  // só nomeia uma colocação quando ela pertence a uma pessoa só
+  const soleAt = pos => {
+    const hits = ranked.filter(r => r.pos === pos);
+    return hits.length === 1 ? hits[0].p.id : null;
   };
+  return {champion: ranked[0].p.id, runnerUp: soleAt(2), third: soleAt(3)};
 }
 
 /* ============================================================
@@ -746,7 +786,7 @@ async function archiveTournament(){
       return;
     }
     ({champion: champ, runnerUp, third} = res);
-    extra = {board: clone(state.board)};
+    extra = {board: clone(state.board), dir: state.scoreDir, unit: scoreUnit()};
   } else {
     const R = state.rounds;
     champ = championId();
@@ -853,10 +893,28 @@ function renderSetup(){
   document.querySelectorAll('#formats .fmt').forEach(el => {
     el.classList.toggle('active', el.dataset.format === state.format);
   });
+  document.querySelectorAll('#dirs .dir').forEach(el => {
+    el.classList.toggle('active', el.dataset.dir === state.scoreDir);
+  });
+  document.getElementById('dirWrap').style.display = score ? '' : 'none';
   document.getElementById('optThirdRow').style.display = score ? 'none' : '';
+
+  // limite de jogadores por partida (golfe: 4)
+  const max = maxPlayers(), over = max && state.participants.length > max;
+  let aviso = document.getElementById('limitWarn');
+  if(over){
+    if(!aviso){
+      aviso = document.createElement('div');
+      aviso.id = 'limitWarn'; aviso.className = 'limit';
+      document.getElementById('plist').after(aviso);
+    }
+    aviso.innerHTML = `<span>⚠️</span><span>${esc(sportName())} comporta no máximo <b>${max} jogadores</b>
+      por partida — você tem <b>${state.participants.length}</b>. Remova alguém ou joguem em grupos separados.</span>`;
+  } else if(aviso){ aviso.remove(); }
+
   const gen = document.getElementById('btnGenerate');
-  gen.textContent = score ? '🎳 Iniciar competição' : '🎲 Sortear chaves';
-  gen.disabled = state.participants.length < 2;
+  gen.textContent = score ? (sportIcon() + ' Iniciar competição') : '🎲 Sortear chaves';
+  gen.disabled = state.participants.length < 2 || !!over;
   document.getElementById('histCount').textContent = history.length;
   [...document.querySelectorAll('.tab')].forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
 }
@@ -987,13 +1045,15 @@ function panelBracket(){
 /* Placar de um campeonato salvo (somente leitura) */
 function boardHTML(h){
   const find = finder(h.players);
+  const low = h.dir === 'low';
   const rows = h.board.order.map(id => ({p: find(id), score: parseInt(h.board.scores[id], 10)}))
     .filter(r => r.p && !isNaN(r.score))
-    .sort((a,b) => b.score - a.score);
+    .sort((a,b) => low ? a.score - b.score : b.score - a.score);
   let pos = 0, prev = null;
   rows.forEach((r,i) => { if(r.score !== prev){ pos = i+1; prev = r.score; } r.pos = pos; });
 
-  return '<div class="stand" style="max-width:340px">' + rows.map(r => {
+  return `<div class="hint" style="margin:0 0 8px">${low ? '🔽 Menos' : '🔼 Mais'} ${esc(h.unit || 'pontos')} vence</div>
+    <div class="stand" style="max-width:340px">` + rows.map(r => {
     const medal = r.pos === 1 ? '🥇' : r.pos === 2 ? '🥈' : r.pos === 3 ? '🥉' : r.pos + 'º';
     return `<div class="srow p${r.pos <= 3 ? r.pos : 0}">
         <span class="pos">${medal}</span>${avatar(r.p, 24)}
@@ -1019,13 +1079,16 @@ function panelBoard(){
   const third = res && res.third ? byId(res.third) : null;
   const saved = state.savedAs && history.some(h => h.id === state.savedAs);
   const leaderId = ranked.length ? ranked[0].p.id : null;
+  const unit = scoreUnit();
+  const pts = id => { const r = ranked.find(x => x.p.id === id); return r ? r.score : ''; };
+  const max = maxPlayers();
 
   let html = `
     <div class="bracket-head">
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <span class="badge">${sportIcon()} ${esc(sportName())}</span>
-        <span class="badge">👥 ${state.participants.length} participantes</span>
-        <span class="badge">📋 Pontuação corrida</span>
+        <span class="badge">👥 ${state.participants.length} participantes${max ? ' (máx. ' + max + ')' : ''}</span>
+        <span class="badge">${lowWins() ? '🔽 Menos ' + unit + ' vence' : '🔼 Mais ' + unit + ' vence'}</span>
       </div>
       <div class="head-actions bracket-actions">
         <button class="btn btn-sm" id="btnReshuffle">🎲 Sortear ordem de novo</button>
@@ -1040,30 +1103,31 @@ function panelBoard(){
         <div>
           <div class="lbl">Campeão · ${esc(sportName())}</div>
           <div class="nm">${esc(champ.name)}</div>
-          <div class="sub">${ranked[0].score} pontos 🎉</div>
+          <div class="sub">${pts(champ.id)} ${unit} 🎉</div>
         </div>
         <div class="podium">
-          <div class="pod"><span class="pos">🥇</span><span class="pn">${esc(champ.name)} · ${ranked[0].score}</span></div>
-          ${vice  ? `<div class="pod"><span class="pos">🥈</span><span class="pn">${esc(vice.name)} · ${ranked[1].score}</span></div>` : ''}
-          ${third ? `<div class="pod"><span class="pos">🥉</span><span class="pn">${esc(third.name)} · ${ranked[2].score}</span></div>` : ''}
+          <div class="pod"><span class="pos">🥇</span><span class="pn">${esc(champ.name)} · ${pts(champ.id)}</span></div>
+          ${vice  ? `<div class="pod"><span class="pos">🥈</span><span class="pn">${esc(vice.name)} · ${pts(vice.id)}</span></div>` : ''}
+          ${third ? `<div class="pod"><span class="pos">🥉</span><span class="pn">${esc(third.name)} · ${pts(third.id)}</span></div>` : ''}
           <button class="btn ${saved ? '' : 'btn-gold'}" id="btnArchive">
             ${saved ? '💾 Atualizar no histórico' : '🏅 Salvar no histórico'}
           </button>
         </div>
       </div>`;
   } else if(res && res.tie){
-    html += `<div class="tie">🤝 <b>Empate na liderança</b> com ${ranked[0].score} pontos.
+    html += `<div class="tie">🤝 <b>Empate na liderança</b> com ${ranked[0].score} ${unit}.
              Ajuste a pontuação ou façam um desempate para fechar o campeonato.</div>`;
   } else {
     html += `<div class="howto">
       <span style="font-size:20px">✍️</span>
-      <span>Digite a <b>pontuação final</b> de cada participante. A classificação ao lado se atualiza
+      <span>Digite ${lowWins() ? 'as <b>tacadas</b>' : 'a <b>pontuação final</b>'} de cada participante —
+      vence quem fizer <b>${lowWins() ? 'menos' : 'mais'}</b>. A classificação ao lado se atualiza
       sozinha e o campeão é anunciado quando todos tiverem pontuado
       ${pending.length ? `— faltam <b>${pending.length}</b>.` : '.'}</span>
     </div>`;
   }
 
-  html += '<div class="board"><div class="bsec"><h3>Pontuação — ordem de jogo</h3>';
+  html += `<div class="board"><div class="bsec"><h3>${esc(unit.charAt(0).toUpperCase() + unit.slice(1))} — ordem de jogo</h3>`;
   state.board.order.forEach((id, i) => {
     const p = byId(id);
     if(!p) return;
@@ -1228,7 +1292,8 @@ document.getElementById('sports').addEventListener('click', e => {
   if(!el) return;
   state.sport = el.dataset.sport;
   state.customSport = '';
-  state.format = defaultFormat(state.sport);   // boliche entra em pontuação corrida
+  state.format = defaultFormat(state.sport);     // boliche e golfe entram em pontuação corrida
+  state.scoreDir = defaultDir(state.sport);      // golfe: vence quem faz menos tacadas
   document.getElementById('customSport').value = '';
   save(); render();
 });
@@ -1238,6 +1303,14 @@ document.getElementById('formats').addEventListener('click', e => {
   const el = e.target.closest('[data-format]');
   if(!el || el.dataset.format === state.format) return;
   state.format = el.dataset.format;
+  save(); render();
+});
+
+// critério de vitória (mais ou menos pontos)
+document.getElementById('dirs').addEventListener('click', e => {
+  const el = e.target.closest('[data-dir]');
+  if(!el || el.dataset.dir === state.scoreDir) return;
+  state.scoreDir = el.dataset.dir;
   save(); render();
 });
 document.getElementById('customSport').addEventListener('input', e => {
@@ -1367,7 +1440,10 @@ document.getElementById('panel').addEventListener('click', e => {
 document.getElementById('panel').addEventListener('input', e => {
   // pontuação corrida: cada participante tem um campo só
   if(e.target.classList.contains('pts') && !e.target.disabled){
-    const clean = e.target.value.replace(/[^\d]/g, '');
+    // no golfe aceita valor negativo (abaixo do par); no resto, só dígitos
+    const clean = lowWins()
+      ? e.target.value.replace(/(?!^-)[^\d]/g, '')
+      : e.target.value.replace(/[^\d]/g, '');
     if(clean !== e.target.value) e.target.value = clean;
     setBoardScore(e.target.dataset.score, clean);
     focusBack = {score: e.target.dataset.score};
@@ -1422,7 +1498,7 @@ document.getElementById('importInput').addEventListener('change', e => {
 document.getElementById('btnPrint').addEventListener('click', () => window.print());
 document.getElementById('btnClearAll').addEventListener('click', () => {
   if(!confirm('Começar um campeonato novo? Os participantes e a chave atual serão apagados.\n\nO histórico de campeonatos salvos é mantido.')) return;
-  state = {sport:'boliche', customSport:'', format:'score', third:true,
+  state = {sport:'boliche', customSport:'', format:'score', scoreDir:'high', third:true,
            participants:[], rounds:null, thirdMatch:null, board:null, savedAs:null};
   pendingPhoto = null; photoTarget = null;
   document.getElementById('customSport').value = '';
@@ -1445,7 +1521,8 @@ window.addEventListener('error', e => showFatal(e.message || 'erro desconhecido'
 
 try{
   load();
-  if(!state.format) state.format = defaultFormat(state.sport);   // estados salvos antes dos formatos
+  if(!state.format)   state.format = defaultFormat(state.sport);   // estados salvos antes dos formatos
+  if(!state.scoreDir) state.scoreDir = defaultDir(state.sport);
   document.getElementById('customSport').value = state.customSport || '';
   document.getElementById('optThird').checked = state.third !== false;
   if(state.rounds) recompute();
