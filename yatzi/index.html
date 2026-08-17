@@ -1,4 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Yatzi Placar</title>
+<meta name="description" content="Registre partidas de Yatzi e acompanhe o histórico do grupo.">
+
+<!-- installed-app behaviour on iOS -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Yatzi">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+
+<style>
+  /* the status bar owns its strip in standalone mode; this is 0 in a tab */
+  .app{padding-top:env(safe-area-inset-top)}
+</style>
 <style>
 /* ============================================================
    Yatzi Placar — iOS-native visual system
@@ -325,7 +347,8 @@ canvas{display:block;width:100%}
 }
 .tag-new{background:rgba(52,199,89,.16);color:var(--green)}
 </style>
-
+</head>
+<body>
 <div class="app">
   <div class="screens">
 
@@ -1441,3 +1464,13 @@ if (window.matchMedia) {
 }
 new MutationObserver(drawCharts).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 </script>
+<script>
+/* Cache the shell so the app opens with no connection — handy at the table. */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
