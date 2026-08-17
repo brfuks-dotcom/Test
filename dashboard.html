@@ -95,6 +95,41 @@
 
     ::-webkit-scrollbar{width:6px;height:6px} ::-webkit-scrollbar-track{background:var(--bg)} ::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px}
     @media(max-width:768px){.grid-2,.grid-3{grid-template-columns:1fr}.content,.kpi-grid{padding:12px}header{padding:14px}.header-stats{gap:12px}}
+
+    /* === Anotar Jogo === */
+    .btn{padding:9px 18px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:.2s}
+    .btn-purple{background:var(--purple);color:#fff}.btn-purple:hover{background:#b48bff}
+    .btn-purple:disabled,.btn-green:disabled{background:#2a2a2a;color:#555;cursor:not-allowed}
+    .btn-green{background:var(--green);color:#000}.btn-green:hover{filter:brightness(1.12)}
+    .btn-red{background:var(--red);color:#fff}.btn-red:hover{filter:brightness(1.1)}
+    .btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted)}.btn-outline:hover{border-color:var(--purple);color:var(--purple)}
+    .player-setup{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+    .player-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:8px;font-size:13px;outline:none;width:220px}
+    .player-input:focus{border-color:var(--purple)}
+    .player-chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;min-height:32px}
+    .player-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(163,113,247,.15);border:1px solid rgba(163,113,247,.3);color:var(--purple);padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600}
+    .pchip-rm{cursor:pointer;opacity:.55;margin-left:2px;font-size:11px;line-height:1}.pchip-rm:hover{opacity:1;color:var(--red)}
+    .score-table{width:100%;border-collapse:collapse;min-width:300px}
+    .score-table thead th{background:rgba(163,113,247,.1);padding:10px 14px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--border);white-space:nowrap;text-align:center}
+    .score-table thead th.scat-col{text-align:left;min-width:130px}
+    .score-table tbody td{padding:6px 8px;border-bottom:1px solid rgba(48,54,61,.4);text-align:center;vertical-align:middle}
+    .score-table tbody td.cat-label{text-align:left;padding-left:12px;white-space:nowrap}
+    .cat-key{display:inline-block;background:rgba(163,113,247,.15);color:var(--purple);font-weight:800;font-size:11px;border-radius:4px;padding:1px 5px;margin-right:6px}
+    .cat-name{color:var(--muted);font-size:12px}
+    .score-table tr.section-hdr td{background:rgba(88,166,255,.06);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--blue);padding:5px 12px;border-bottom:1px solid rgba(88,166,255,.1)}
+    .score-table tr.total-row td{font-weight:800;font-size:15px;border-top:2px solid var(--purple);padding:10px 8px}
+    .score-table tr.total-row .cat-label{color:var(--text)}
+    .score-table tr.total-row.hidden-total td:not(.cat-label){filter:blur(8px);user-select:none;pointer-events:none}
+    .score-table tr.total-row.revealed td{color:var(--yellow)}
+    .score-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:5px 4px;border-radius:6px;width:64px;text-align:center;font-size:14px;font-weight:600;outline:none;transition:.15s}
+    .score-input:focus{border-color:var(--purple);background:rgba(163,113,247,.1)}
+    .score-input::-webkit-outer-spin-button,.score-input::-webkit-inner-spin-button{-webkit-appearance:none}
+    .score-input[type=number]{-moz-appearance:textfield}
+    .score-input:disabled{opacity:.55;cursor:not-allowed;background:transparent}
+    .game-actions{display:flex;gap:12px;align-items:center;margin-top:20px;flex-wrap:wrap}
+    .winner-banner{background:linear-gradient(135deg,rgba(227,179,65,.18),rgba(227,179,65,.04));border:1px solid rgba(227,179,65,.35);border-radius:12px;padding:22px 24px;text-align:center;margin-bottom:20px}
+    .winner-name{font-size:30px;font-weight:800;color:var(--yellow);margin:6px 0}
+    .winner-score{font-size:15px;color:var(--muted)}
   </style>
 </head>
 <body>
@@ -130,6 +165,7 @@
   <div class="tab" onclick="showTab('games')">🎮 Por Partida</div>
   <div class="tab" onclick="showTab('cats')">📋 Categorias</div>
   <div class="tab" onclick="showTab('records')">🏆 Recordes</div>
+  <div class="tab" onclick="showTab('anotar')">✏️ Anotar Jogo</div>
 </div>
 
 <div id="tab-geral" class="tab-pane active content">
@@ -249,6 +285,43 @@
   <div class="card">
     <div class="card-title">🎲 Lances Especiais e Curiosidades</div>
     <div id="specialFacts" class="insight-list"></div>
+  </div>
+</div>
+
+<div id="tab-anotar" class="tab-pane content">
+  <!-- Setup phase -->
+  <div id="anotar-setup">
+    <div class="card">
+      <div class="card-title">👥 Participantes da Partida</div>
+      <div class="player-setup">
+        <input type="text" id="playerNameInput" class="player-input" placeholder="Nome do jogador..."
+               onkeydown="if(event.key==='Enter')addAnotarPlayer()">
+        <button class="btn btn-purple" onclick="addAnotarPlayer()">+ Adicionar</button>
+      </div>
+      <div class="player-chips" id="anotarPlayerChips"></div>
+      <div style="display:flex;align-items:center;gap:14px;margin-top:6px">
+        <button class="btn btn-green" id="anotarStartBtn" disabled onclick="startAnotarGame()">🎮 Iniciar Partida</button>
+        <span id="anotarSetupHint" style="color:var(--muted);font-size:12px">Adicione ao menos 2 jogadores</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game phase -->
+  <div id="anotar-game" style="display:none">
+    <div class="card">
+      <div id="anotarWinnerBanner" style="display:none" class="winner-banner"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+        <div class="card-title" style="margin-bottom:0" id="anotarGameTitle">🎮 Partida em Andamento</div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="score-table" id="anotarTable"></table>
+      </div>
+      <div class="game-actions">
+        <button class="btn btn-red" id="anotarEndBtn" onclick="endAnotarGame()">🔒 Encerrar Partida</button>
+        <button class="btn btn-outline" onclick="resetAnotarGame()">↩ Nova Partida</button>
+        <span id="anotarHint" style="color:var(--muted);font-size:12px">Os totais ficam ocultos até encerrar</span>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -812,10 +885,175 @@ function initRecords() {
 }
 
 function showTab(name) {
-  const names=['geral','players','games','cats','records'];
+  const names=['geral','players','games','cats','records','anotar'];
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',names[i]===name));
   document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
+}
+
+// === Anotar Jogo ===
+const ANOTAR_CATS = [
+  {key:'d1', label:'1',   name:'Uns',        section:'upper'},
+  {key:'d2', label:'2',   name:'Dois',       section:'upper'},
+  {key:'d3', label:'3',   name:'Três',       section:'upper'},
+  {key:'d4', label:'4',   name:'Quatro',     section:'upper'},
+  {key:'d5', label:'5',   name:'Cincos',     section:'upper'},
+  {key:'d6', label:'6',   name:'Seis',       section:'upper'},
+  {key:'T',  label:'T',   name:'Trinca',     section:'lower'},
+  {key:'Q',  label:'Q',   name:'Quadra',     section:'lower'},
+  {key:'F',  label:'F',   name:'Full House', section:'lower'},
+  {key:'Sp', label:'S+',  name:'Seq. +',     section:'lower'},
+  {key:'Sm', label:'S−',  name:'Seq. −',     section:'lower'},
+  {key:'Y',  label:'Y',   name:'Yatzi',      section:'lower'},
+  {key:'X',  label:'X',   name:'Chance',     section:'lower'},
+];
+
+let anotarPlayers = [];
+let anotarGameEnded = false;
+
+function addAnotarPlayer() {
+  const input = document.getElementById('playerNameInput');
+  const name = input.value.trim();
+  if (!name || anotarPlayers.includes(name)) { input.value=''; input.focus(); return; }
+  anotarPlayers.push(name);
+  input.value = '';
+  input.focus();
+  renderAnotarChips();
+  document.getElementById('anotarStartBtn').disabled = anotarPlayers.length < 2;
+  document.getElementById('anotarSetupHint').style.display = anotarPlayers.length >= 2 ? 'none' : 'inline';
+}
+
+function removeAnotarPlayer(idx) {
+  anotarPlayers.splice(idx, 1);
+  renderAnotarChips();
+  document.getElementById('anotarStartBtn').disabled = anotarPlayers.length < 2;
+  document.getElementById('anotarSetupHint').style.display = anotarPlayers.length >= 2 ? 'none' : 'inline';
+}
+
+function renderAnotarChips() {
+  document.getElementById('anotarPlayerChips').innerHTML = anotarPlayers.map((p, i) => {
+    const col = COLORS[p] || '#a371f7';
+    return `<span class="player-chip" style="color:${col};border-color:${col}44;background:${col}18">
+      ${p}<span class="pchip-rm" onclick="removeAnotarPlayer(${i})" title="Remover">✕</span>
+    </span>`;
+  }).join('');
+}
+
+function startAnotarGame() {
+  anotarGameEnded = false;
+  document.getElementById('anotar-setup').style.display = 'none';
+  document.getElementById('anotar-game').style.display = 'block';
+  document.getElementById('anotarWinnerBanner').style.display = 'none';
+  document.getElementById('anotarEndBtn').style.display = 'inline-block';
+  document.getElementById('anotarHint').textContent = 'Os totais ficam ocultos até encerrar';
+  document.getElementById('anotarGameTitle').textContent = '🎮 Partida em Andamento — ' + anotarPlayers.join(', ');
+  buildAnotarTable();
+}
+
+function buildAnotarTable() {
+  const table = document.getElementById('anotarTable');
+  let html = '<thead><tr><th class="scat-col">Categoria</th>';
+  anotarPlayers.forEach(p => {
+    const col = COLORS[p] || '#8b949e';
+    html += `<th style="color:${col}">${p}</th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  let lastSection = null;
+  ANOTAR_CATS.forEach(cat => {
+    if (cat.section !== lastSection) {
+      const sLabel = cat.section === 'upper' ? 'Superiores — Dados 1 a 6' : 'Combinações Especiais';
+      html += `<tr class="section-hdr"><td colspan="${anotarPlayers.length + 1}">${sLabel}</td></tr>`;
+      lastSection = cat.section;
+    }
+    html += `<tr><td class="cat-label"><span class="cat-key">${cat.label}</span><span class="cat-name">${cat.name}</span></td>`;
+    anotarPlayers.forEach((p, i) => {
+      html += `<td><input type="number" class="score-input" id="ainp-${cat.key}-${i}" min="0" oninput="updateAnotarTotal(${i})" placeholder="—"></td>`;
+    });
+    html += '</tr>';
+  });
+
+  html += `<tr class="total-row hidden-total"><td class="cat-label" style="font-size:13px;text-transform:uppercase;letter-spacing:.06em">Total</td>`;
+  anotarPlayers.forEach((p, i) => { html += `<td id="anot-total-${i}">0</td>`; });
+  html += '</tr></tbody>';
+  table.innerHTML = html;
+}
+
+function updateAnotarTotal(playerIdx) {
+  if (anotarGameEnded) return;
+  let total = 0;
+  ANOTAR_CATS.forEach(cat => {
+    const inp = document.getElementById(`ainp-${cat.key}-${playerIdx}`);
+    if (inp && inp.value !== '') total += Math.max(0, parseInt(inp.value) || 0);
+  });
+  const cell = document.getElementById(`anot-total-${playerIdx}`);
+  if (cell) cell.textContent = total;
+}
+
+function endAnotarGame() {
+  anotarGameEnded = true;
+
+  // Recompute totals from inputs before revealing
+  const totals = anotarPlayers.map((p, i) => {
+    let total = 0;
+    ANOTAR_CATS.forEach(cat => {
+      const inp = document.getElementById(`ainp-${cat.key}-${i}`);
+      if (inp && inp.value !== '') total += Math.max(0, parseInt(inp.value) || 0);
+    });
+    document.getElementById(`anot-total-${i}`).textContent = total;
+    return { player: p, total, idx: i };
+  });
+
+  // Reveal total row
+  const totalRow = document.querySelector('#anotarTable .total-row');
+  totalRow.classList.remove('hidden-total');
+  totalRow.classList.add('revealed');
+
+  // Disable all inputs
+  document.querySelectorAll('#anotarTable .score-input').forEach(inp => inp.disabled = true);
+
+  // Find winner
+  const maxTotal = Math.max(...totals.map(t => t.total));
+  const winner = totals.find(t => t.total === maxTotal);
+  const tied = totals.filter(t => t.total === maxTotal);
+
+  // Highlight winner header
+  const ths = document.querySelectorAll('#anotarTable thead th');
+  totals.forEach(t => {
+    if (t.total === maxTotal && ths[t.idx + 1]) {
+      ths[t.idx + 1].style.background = 'rgba(227,179,65,.2)';
+      ths[t.idx + 1].style.color = 'var(--yellow)';
+    }
+  });
+
+  // Winner banner
+  const banner = document.getElementById('anotarWinnerBanner');
+  banner.style.display = 'block';
+  if (tied.length > 1) {
+    banner.innerHTML = `<div style="font-size:24px;font-weight:800;color:var(--yellow)">🤝 Empate!</div>
+      <div class="winner-score" style="margin-top:6px">${tied.map(t=>t.player).join(' & ')} — ${maxTotal} pontos</div>`;
+  } else {
+    banner.innerHTML = `<div style="font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">🏆 Vencedor</div>
+      <div class="winner-name">🥇 ${winner.player}</div>
+      <div class="winner-score">${winner.total} pontos</div>`;
+  }
+
+  // Update UI
+  document.getElementById('anotarGameTitle').textContent = '🏁 Partida Encerrada';
+  document.getElementById('anotarEndBtn').style.display = 'none';
+  document.getElementById('anotarHint').textContent = '';
+}
+
+function resetAnotarGame() {
+  anotarPlayers = [];
+  anotarGameEnded = false;
+  document.getElementById('anotarPlayerChips').innerHTML = '';
+  document.getElementById('playerNameInput').value = '';
+  document.getElementById('anotarStartBtn').disabled = true;
+  document.getElementById('anotarSetupHint').style.display = 'inline';
+  document.getElementById('anotar-setup').style.display = 'block';
+  document.getElementById('anotar-game').style.display = 'none';
+  document.getElementById('anotarTable').innerHTML = '';
 }
 
 window.addEventListener('DOMContentLoaded', () => {
