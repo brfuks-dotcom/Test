@@ -897,7 +897,8 @@ function renderHome() {
   /* podium — 2nd, 1st, 3rd so the winner sits centre */
   const top = ranked(1).slice(0, 3);
   const order = [top[1], top[0], top[2]].filter(Boolean);
-  const heights = { 0: 44, 1: 62, 2: 34 };
+  /* keyed by placing, tallest bar to the winner */
+  const heights = { 0: 62, 1: 44, 2: 34 };
   document.getElementById('home-podium').innerHTML = order.map(p => {
     const place = top.indexOf(p);
     return `<div class="pod">
