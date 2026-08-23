@@ -21,6 +21,18 @@ Aplicativo web para organizar campeonatos dos jogos do Nintendo Switch Sports.
 
 Não depende de servidor nem de bibliotecas externas: é um único arquivo HTML.
 
+## 🕵️ [`dicionario-mentiroso.html`](dicionario-mentiroso.html) — Dicionário Mentiroso
+
+Jogo de festa para jogar passando o celular entre os participantes.
+
+- A cada rodada, sorteia-se uma palavra rara do dicionário embutido. Todos os jogadores, exceto quem sorteou, escrevem uma definição falsa tentando soar convincente.
+- Todos votam em qual definição, entre as falsas e a verdadeira, acham que é a real.
+- **Pontuação**: quem engana outro jogador (recebe voto na sua definição falsa) ganha 1 ponto por voto; quem acerta a definição real ganha 2 pontos; se ninguém acertar, quem sorteou a palavra ganha 3 pontos de bônus.
+- Suporta qualquer número de jogadores a partir de 3, com placar persistente entre rodadas e tela final com o vencedor.
+- Visual com tema de dossiê/interrogatório, com suporte a tema claro e escuro.
+
+Não depende de servidor nem de bibliotecas externas: é um único arquivo HTML.
+
 ## 🎲 [`index.html`](index.html) — Dashboard Yatzi Analytics
 
 Dashboard de estatísticas das partidas de Yatzi.
