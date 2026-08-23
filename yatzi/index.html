@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Yatzi Placar</title>
+<meta name="description" content="Registre partidas de Yatzi e acompanhe o histórico do grupo.">
+
+<!-- installed-app behaviour on iOS -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Yatzi">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+
+<style>
+  /* the status bar owns its strip in standalone mode; this is 0 in a tab */
+  .app{padding-top:env(safe-area-inset-top)}
+</style>
+<style>
+/* ============================================================
+   Yatzi Placar — iOS-native visual system
+   Palette follows Apple HIG system colors.
+   ============================================================ */
+:root{
+  /* light (systemGroupedBackground family) */
+  --ground:#F2F2F7;
+  --surface:#FFFFFF;
+  --surface-2:#FFFFFF;
+  --separator:rgba(60,60,67,.29);
+  --separator-soft:rgba(60,60,67,.12);
+  --label:#000000;
+  --label-2:rgba(60,60,67,.60);
+  --label-3:rgba(60,60,67,.30);
+  --fill:rgba(120,120,128,.12);
+  --fill-2:rgba(120,120,128,.16);
+  --blue:#007AFF;
+  --green:#34C759;
+  --orange:#FF9500;
+  --red:#FF3B30;
+  --purple:#AF52DE;
+  --yellow:#FFCC00;
+  --teal:#30B0C7;
+  --pink:#FF2D55;
+  --indigo:#5856D6;
+  --bar:rgba(249,249,249,.82);
+  --bar-line:rgba(60,60,67,.29);
+  --grid:rgba(60,60,67,.10);
+  --shadow:0 1px 2px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#000000;
+    --surface:#1C1C1E;
+    --surface-2:#2C2C2E;
+    --separator:rgba(84,84,88,.65);
+    --separator-soft:rgba(84,84,88,.34);
+    --label:#FFFFFF;
+    --label-2:rgba(235,235,245,.60);
+    --label-3:rgba(235,235,245,.30);
+    --fill:rgba(120,120,128,.24);
+    --fill-2:rgba(120,120,128,.32);
+    --blue:#0A84FF;
+    --green:#30D158;
+    --orange:#FF9F0A;
+    --red:#FF453A;
+    --purple:#BF5AF2;
+    --yellow:#FFD60A;
+    --teal:#40C8E0;
+    --pink:#FF375F;
+    --indigo:#5E5CE6;
+    --bar:rgba(22,22,22,.82);
+    --bar-line:rgba(84,84,88,.65);
+    --grid:rgba(235,235,245,.12);
+    --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#000000;
+  --surface:#1C1C1E;
+  --surface-2:#2C2C2E;
+  --separator:rgba(84,84,88,.65);
+  --separator-soft:rgba(84,84,88,.34);
+  --label:#FFFFFF;
+  --label-2:rgba(235,235,245,.60);
+  --label-3:rgba(235,235,245,.30);
+  --fill:rgba(120,120,128,.24);
+  --fill-2:rgba(120,120,128,.32);
+  --blue:#0A84FF;
+  --green:#30D158;
+  --orange:#FF9F0A;
+  --red:#FF453A;
+  --purple:#BF5AF2;
+  --yellow:#FFD60A;
+  --teal:#40C8E0;
+  --pink:#FF375F;
+  --indigo:#5E5CE6;
+  --bar:rgba(22,22,22,.82);
+  --bar-line:rgba(84,84,88,.65);
+  --grid:rgba(235,235,245,.12);
+  --shadow:none;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--ground);
+  color:var(--label);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size:17px;
+  line-height:1.29;
+  letter-spacing:-.01em;
+  -webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input{font:inherit;color:inherit;background:none;border:none;outline:none}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:6px}
+@media (prefers-reduced-motion: reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+
+/* ---------- App shell: a phone-width column centred on wider screens ---------- */
+.app{
+  max-width:430px;margin:0 auto;min-height:100vh;
+  background:var(--ground);position:relative;
+  display:flex;flex-direction:column;
+  border-left:1px solid var(--separator-soft);
+  border-right:1px solid var(--separator-soft);
+}
+@media(max-width:460px){.app{border:none}}
+
+.screens{flex:1;padding-bottom:96px}
+.screen{display:none}
+.screen.on{display:block}
+
+/* ---------- Large title header ---------- */
+.nav{padding:8px 20px 4px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.nav h1{font-size:34px;line-height:1.12;font-weight:700;letter-spacing:-.024em;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif}
+.nav-sub{padding:0 20px;color:var(--label-2);font-size:15px;letter-spacing:-.012em;margin-top:2px}
+.nav-act{color:var(--blue);font-size:17px;padding:4px 0;letter-spacing:-.012em}
+.nav-act:active{opacity:.4}
+
+/* ---------- Inset grouped list (the core iOS container) ---------- */
+.group{margin:22px 16px 0}
+.group-hdr{
+  font-size:13px;font-weight:400;color:var(--label-2);
+  text-transform:uppercase;letter-spacing:.05em;
+  padding:0 16px 7px;
+}
+.group-ftr{font-size:13px;color:var(--label-2);padding:7px 16px 0;line-height:1.35;letter-spacing:-.006em}
+.list{background:var(--surface);border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+.row{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 16px;min-height:44px;
+  position:relative;
+}
+.row + .row::before{
+  content:"";position:absolute;left:16px;right:0;top:0;height:1px;
+  background:var(--separator-soft);
+}
+.row-tap{cursor:pointer;transition:background .12s}
+.row-tap:active{background:var(--fill)}
+.row-main{flex:1;min-width:0}
+.row-title{font-size:17px;letter-spacing:-.012em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row-sub{font-size:13px;color:var(--label-2);margin-top:1px;letter-spacing:-.006em}
+.row-val{color:var(--label-2);font-size:17px;font-variant-numeric:tabular-nums;letter-spacing:-.012em}
+.chev{width:7px;height:12px;flex-shrink:0;opacity:.3}
+
+/* ---------- Avatar ---------- */
+.av{
+  width:30px;height:30px;border-radius:50%;flex-shrink:0;
+  display:grid;place-items:center;
+  font-size:13px;font-weight:600;color:#fff;letter-spacing:0;
+}
+.av-lg{width:44px;height:44px;font-size:17px}
+
+/* ---------- Hero summary card ---------- */
+.hero{margin:16px 16px 0;background:var(--surface);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow)}
+.hero-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.hero-cell{text-align:center;position:relative}
+.hero-cell + .hero-cell::before{content:"";position:absolute;left:0;top:4px;bottom:4px;width:1px;background:var(--separator-soft)}
+.hero-n{font-size:26px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif}
+.hero-l{font-size:12px;color:var(--label-2);margin-top:2px;letter-spacing:-.004em}
+
+/* ---------- Podium ---------- */
+.podium{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:end;padding:4px 2px 0}
+.pod{text-align:center}
+.pod-av{margin:0 auto 7px}
+.pod-name{font-size:13px;font-weight:600;letter-spacing:-.006em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pod-w{font-size:12px;color:var(--label-2);margin-top:1px}
+.pod-bar{margin-top:8px;border-radius:7px 7px 0 0;display:grid;place-items:start center;padding-top:7px;font-size:15px;font-weight:600;color:#fff}
+
+/* ---------- Segmented control ---------- */
+.seg{
+  display:flex;background:var(--fill);border-radius:9px;padding:2px;margin:16px;gap:2px;
+}
+.seg-i{
+  flex:1;padding:6px 4px;border-radius:7px;font-size:13px;font-weight:500;
+  text-align:center;letter-spacing:-.004em;color:var(--label);
+  transition:background .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.seg-i.on{background:var(--surface);font-weight:600;box-shadow:0 3px 8px rgba(0,0,0,.10),0 1px 1px rgba(0,0,0,.04)}
+
+/* ---------- Buttons ---------- */
+.btn{
+  display:block;width:100%;padding:15px;border-radius:12px;
+  font-size:17px;font-weight:600;letter-spacing:-.012em;text-align:center;
+  transition:opacity .12s,transform .06s;
+}
+.btn:active{opacity:.75;transform:scale(.985)}
+.btn:disabled{opacity:.4;cursor:default;transform:none}
+.btn-fill{background:var(--blue);color:#fff}
+.btn-green{background:var(--green);color:#fff}
+.btn-red{background:var(--red);color:#fff}
+.btn-tint{background:var(--fill);color:var(--blue)}
+.btn-plain{color:var(--blue);font-weight:400}
+.btn-wrap{padding:24px 16px 0;display:flex;flex-direction:column;gap:10px}
+
+/* ---------- Text field ---------- */
+.field{
+  display:flex;align-items:center;gap:10px;background:var(--surface);
+  border-radius:10px;padding:11px 16px;box-shadow:var(--shadow);
+}
+.field input{flex:1;font-size:17px;letter-spacing:-.012em;min-width:0}
+.field input::placeholder{color:var(--label-3)}
+
+/* ---------- Score entry chips ---------- */
+.chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.chip{
+  min-width:38px;padding:6px 9px;border-radius:8px;background:var(--fill);
+  font-size:15px;font-weight:500;font-variant-numeric:tabular-nums;
+  text-align:center;transition:background .12s,color .12s;letter-spacing:-.006em;
+}
+.chip.on{background:var(--blue);color:#fff;font-weight:600}
+.chip-z.on{background:var(--fill-2);color:var(--label-2)}
+.num-in{
+  width:74px;padding:7px 10px;border-radius:8px;background:var(--fill);
+  text-align:right;font-size:17px;font-variant-numeric:tabular-nums;font-weight:500;
+  -moz-appearance:textfield;
+}
+.num-in::-webkit-outer-spin-button,.num-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.num-in:focus{background:var(--fill-2)}
+
+/* ---------- Progress pill ---------- */
+.prog{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--label-2);font-variant-numeric:tabular-nums}
+.prog-t{width:52px;height:4px;border-radius:2px;background:var(--fill-2);overflow:hidden}
+.prog-f{height:100%;background:var(--green);border-radius:2px;transition:width .25s}
+
+/* ---------- Locked total banner ---------- */
+.locked{
+  margin:16px;padding:15px 18px;background:var(--fill);border-radius:12px;
+  display:flex;align-items:center;gap:11px;color:var(--label-2);font-size:14px;
+  letter-spacing:-.006em;line-height:1.35;
+}
+
+/* ---------- Results ---------- */
+.result-hero{padding:32px 20px 8px;text-align:center}
+.result-cap{font-size:13px;color:var(--label-2);text-transform:uppercase;letter-spacing:.06em}
+.result-name{font-size:36px;font-weight:700;letter-spacing:-.026em;margin-top:6px;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif}
+.result-score{font-size:19px;color:var(--label-2);margin-top:3px;font-variant-numeric:tabular-nums}
+.rank-n{
+  width:26px;text-align:center;font-size:15px;font-weight:600;
+  color:var(--label-2);font-variant-numeric:tabular-nums;flex-shrink:0;
+}
+
+/* ---------- Scorecard grid (game detail) ---------- */
+.sc-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px}
+.sc{border-collapse:collapse;width:100%;background:var(--surface);font-variant-numeric:tabular-nums}
+.sc th,.sc td{padding:8px 10px;text-align:center;font-size:15px;white-space:nowrap}
+.sc thead th{
+  font-size:13px;font-weight:600;color:var(--label-2);
+  border-bottom:1px solid var(--separator-soft);padding-top:11px;padding-bottom:9px;
+}
+.sc tbody td{border-bottom:1px solid var(--separator-soft)}
+.sc .cat{text-align:left;color:var(--label-2);font-size:15px;position:sticky;left:0;background:var(--surface);min-width:96px}
+.sc .cat b{color:var(--label);font-weight:600;display:inline-block;width:26px}
+.sc tr.tot td{font-weight:700;font-size:17px;border-top:1px solid var(--separator);border-bottom:none;padding-top:11px;padding-bottom:12px}
+.sc .win{color:var(--green)}
+.sc .nil{color:var(--label-3)}
+
+/* ---------- Charts ---------- */
+.chart-card{margin:22px 16px 0;background:var(--surface);border-radius:12px;padding:16px 14px 12px;box-shadow:var(--shadow)}
+.chart-hdr{font-size:15px;font-weight:600;letter-spacing:-.012em;padding:0 4px 2px}
+.chart-sub{font-size:13px;color:var(--label-2);padding:1px 4px 12px;letter-spacing:-.006em}
+canvas{display:block;width:100%}
+.legend{display:flex;flex-wrap:wrap;gap:12px;padding:12px 4px 2px}
+.leg{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--label-2)}
+.leg i{width:8px;height:8px;border-radius:50%;display:block}
+
+/* ---------- Bar list (stat comparison) ---------- */
+.bl{display:flex;align-items:center;gap:10px;padding:7px 16px}
+.bl-n{width:58px;font-size:15px;font-weight:500;letter-spacing:-.006em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bl-t{flex:1;height:7px;border-radius:4px;background:var(--fill);overflow:hidden}
+.bl-f{height:100%;border-radius:4px;transition:width .4s cubic-bezier(.32,.72,0,1)}
+.bl-v{width:44px;text-align:right;font-size:15px;font-variant-numeric:tabular-nums;color:var(--label-2)}
+
+/* ---------- Tab bar ---------- */
+.tabbar{
+  position:fixed;bottom:0;left:0;right:0;z-index:40;
+  max-width:430px;margin:0 auto;
+  background:var(--bar);
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-top:.5px solid var(--bar-line);
+  display:grid;grid-template-columns:repeat(4,1fr);
+  padding:7px 0 max(7px,env(safe-area-inset-bottom));
+}
+.tab{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  color:var(--label-2);transition:color .12s;padding:2px 0;
+}
+.tab.on{color:var(--blue)}
+.tab svg{width:26px;height:24px}
+.tab span{font-size:10px;font-weight:500;letter-spacing:.005em}
+
+/* ---------- Modal sheet (game detail) ---------- */
+.sheet-bg{
+  position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.35);
+  display:none;align-items:flex-end;justify-content:center;
+}
+.sheet-bg.on{display:flex;animation:fade .22s ease}
+.sheet{
+  background:var(--ground);width:100%;max-width:430px;
+  max-height:88vh;overflow-y:auto;border-radius:12px 12px 0 0;
+  padding-bottom:28px;animation:up .32s cubic-bezier(.32,.72,0,1);
+}
+.sheet-nav{
+  position:sticky;top:0;z-index:2;background:var(--bar);
+  backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;border-bottom:.5px solid var(--bar-line);
+}
+.sheet-t{font-size:17px;font-weight:600;letter-spacing:-.012em}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes up{from{transform:translateY(100%)}to{transform:none}}
+
+.empty{text-align:center;padding:56px 32px;color:var(--label-2)}
+.empty-i{font-size:44px;opacity:.35;margin-bottom:10px}
+.empty-t{font-size:17px;font-weight:600;color:var(--label);letter-spacing:-.012em}
+.empty-s{font-size:15px;margin-top:4px;line-height:1.4;letter-spacing:-.006em}
+
+.tag{
+  font-size:12px;font-weight:600;padding:2px 7px;border-radius:5px;
+  background:var(--fill);color:var(--label-2);letter-spacing:0;
+}
+.tag-new{background:rgba(52,199,89,.16);color:var(--green)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="screens">
+
+    <!-- ============ INÍCIO ============ -->
+    <section id="s-home" class="screen on">
+      <div class="nav"><h1>Yatzi</h1></div>
+      <div class="nav-sub" id="home-sub"></div>
+      <div class="hero">
+        <div class="hero-grid" id="home-hero"></div>
+      </div>
+      <div class="group">
+        <div class="group-hdr">Pódio geral</div>
+        <div class="list" style="padding:16px 14px 0">
+          <div class="podium" id="home-podium"></div>
+        </div>
+      </div>
+      <div class="group">
+        <div class="group-hdr">Últimas partidas</div>
+        <div class="list" id="home-recent"></div>
+      </div>
+      <div class="group">
+        <div class="group-hdr">Recordes</div>
+        <div class="list" id="home-records"></div>
+      </div>
+    </section>
+
+    <!-- ============ PARTIDAS ============ -->
+    <section id="s-games" class="screen">
+      <div class="nav"><h1>Partidas</h1></div>
+      <div class="nav-sub" id="games-sub"></div>
+      <div class="group" style="margin-top:16px">
+        <div class="list" id="games-list"></div>
+      </div>
+    </section>
+
+    <!-- ============ STATS ============ -->
+    <section id="s-stats" class="screen">
+      <div class="nav"><h1>Estatísticas</h1></div>
+      <div class="nav-sub">Desempenho ao longo de todas as partidas</div>
+
+      <div class="chart-card">
+        <div class="chart-hdr">Evolução</div>
+        <div class="chart-sub">Pontuação por partida — os três mais ativos</div>
+        <canvas id="c-evo" height="200"></canvas>
+        <div class="legend" id="evo-leg"></div>
+      </div>
+
+      <div class="group">
+        <div class="group-hdr">Vitórias</div>
+        <div class="list" style="padding:10px 0" id="stat-wins"></div>
+      </div>
+
+      <div class="group">
+        <div class="group-hdr">Média de pontos</div>
+        <div class="list" style="padding:10px 0" id="stat-avg"></div>
+        <div class="group-ftr">Considera jogadores com 3 partidas ou mais.</div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-hdr">Média por categoria</div>
+        <div class="chart-sub">Onde cada um faz seus pontos</div>
+        <canvas id="c-cat" height="210"></canvas>
+        <div class="legend" id="cat-leg"></div>
+      </div>
+
+      <div class="group">
+        <div class="group-hdr">Todos os jogadores</div>
+        <div class="list" id="stat-all"></div>
+      </div>
+    </section>
+
+    <!-- ============ JOGAR ============ -->
+    <section id="s-play" class="screen">
+      <!-- setup -->
+      <div id="play-setup">
+        <div class="nav"><h1>Nova partida</h1></div>
+        <div class="nav-sub">Adicione quem vai jogar</div>
+        <div class="group">
+          <div class="field">
+            <input id="p-name" type="text" placeholder="Nome do jogador" autocomplete="off"
+                   enterkeyhint="done" maxlength="14">
+            <button class="btn-plain" style="font-weight:600" onclick="addPlayer()">Adicionar</button>
+          </div>
+        </div>
+        <div class="group" id="p-sug-g" hidden>
+          <div class="group-hdr">Sugestões</div>
+          <div class="list" id="p-sug"></div>
+        </div>
+        <div class="group" id="p-list-g" hidden>
+          <div class="group-hdr">Jogadores</div>
+          <div class="list" id="p-list"></div>
+        </div>
+        <div class="btn-wrap">
+          <button class="btn btn-fill" id="p-start" disabled onclick="startGame()">Começar</button>
+        </div>
+        <div class="group-ftr" style="text-align:center;padding-top:10px" id="p-hint">Mínimo de 2 jogadores.</div>
+      </div>
+
+      <!-- scoring -->
+      <div id="play-score" hidden>
+        <div class="nav">
+          <h1>Partida</h1>
+          <button class="nav-act" onclick="cancelGame()">Cancelar</button>
+        </div>
+        <div class="nav-sub" id="play-sub"></div>
+        <div class="seg" id="play-seg"></div>
+        <div class="locked">
+          <svg width="15" height="18" viewBox="0 0 15 18" fill="none" style="flex-shrink:0">
+            <path d="M3 7V5a4.5 4.5 0 019 0v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            <rect x="1" y="7" width="13" height="10" rx="2.6" fill="currentColor" opacity=".9"/>
+          </svg>
+          <span>Os totais ficam ocultos até você encerrar a partida.</span>
+        </div>
+        <div id="play-card"></div>
+        <div class="btn-wrap">
+          <button class="btn btn-green" onclick="finishGame()">Encerrar e revelar</button>
+        </div>
+        <div class="group-ftr" style="text-align:center;padding-top:10px">
+          Categorias em branco contam como zero.
+        </div>
+      </div>
+
+      <!-- results -->
+      <div id="play-result" hidden>
+        <div class="result-hero">
+          <div class="result-cap" id="r-cap">Vencedor</div>
+          <div class="result-name" id="r-name"></div>
+          <div class="result-score" id="r-score"></div>
+        </div>
+        <div class="group">
+          <div class="group-hdr">Classificação</div>
+          <div class="list" id="r-rank"></div>
+        </div>
+        <div class="group">
+          <div class="group-hdr">Placar completo</div>
+          <div class="sc-scroll list" id="r-card"></div>
+        </div>
+        <div class="btn-wrap">
+          <button class="btn btn-fill" id="r-save" onclick="saveGame()">Salvar no histórico</button>
+          <button class="btn btn-tint" onclick="newGame()">Nova partida</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ============ TAB BAR ============ -->
+  <nav class="tabbar">
+    <button class="tab on" data-s="home" onclick="go('home')">
+      <svg viewBox="0 0 28 26" fill="none" aria-hidden="true">
+        <path d="M4 12.2L14 4l10 8.2V22a1.6 1.6 0 01-1.6 1.6H5.6A1.6 1.6 0 014 22z"
+              stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+      </svg>
+      <span>Início</span>
+    </button>
+    <button class="tab" data-s="games" onclick="go('games')">
+      <svg viewBox="0 0 28 26" fill="none" aria-hidden="true">
+        <rect x="4.5" y="4.5" width="19" height="17" rx="3" stroke="currentColor" stroke-width="1.9"/>
+        <path d="M9 10h10M9 14h10M9 18h6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+      </svg>
+      <span>Partidas</span>
+    </button>
+    <button class="tab" data-s="stats" onclick="go('stats')">
+      <svg viewBox="0 0 28 26" fill="none" aria-hidden="true">
+        <path d="M6 21V13M12 21V6M18 21V16M24 21V9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+      </svg>
+      <span>Stats</span>
+    </button>
+    <button class="tab" data-s="play" onclick="go('play')">
+      <svg viewBox="0 0 28 26" fill="none" aria-hidden="true">
+        <rect x="5.5" y="4.5" width="17" height="17" rx="4.2" stroke="currentColor" stroke-width="1.9"/>
+        <circle cx="10.6" cy="9.6" r="1.6" fill="currentColor"/>
+        <circle cx="17.4" cy="16.4" r="1.6" fill="currentColor"/>
+        <circle cx="14" cy="13" r="1.6" fill="currentColor"/>
+      </svg>
+      <span>Jogar</span>
+    </button>
+  </nav>
+</div>
+
+<!-- game detail sheet -->
+<div class="sheet-bg" id="sheet" onclick="if(event.target===this)closeSheet()">
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Detalhe da partida">
+    <div class="sheet-nav">
+      <span class="sheet-t" id="sheet-t"></span>
+      <button class="nav-act" onclick="closeSheet()">OK</button>
+    </div>
+    <div id="sheet-body"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   1. Data
+   ============================================================ */
+
+const COLORS = {
+  Bruno:'#a371f7', Brenno:'#58a6ff', Amanda:'#f0883e',
+  Joe:'#3fb950',   Tha:'#e3b341',    Zé:'#db6d28',
+  Gi:'#f85149',    Lari:'#39d353',   Rafa:'#79c0ff',
+  Nhé:'#ffa657',   Brebre:'#d2a8ff', Arik:'#7ee787', Roni:'#ff7b72'
+};
+
+const SEED_GAMES = [
+  {id:1,scores:[
+    {p:'Bruno', d1:1, d2:6, d3:6, d4:12,d5:10,d6:12,T:29,Q:26,F:25,Sp:30,Sm:40,Y:50, X:13,total:260},
+    {p:'Brenno',d1:2, d2:2, d3:6, d4:16,d5:5, d6:12,T:27,Q:0, F:25,Sp:0, Sm:0, Y:0,  X:27,total:122},
+    {p:'Amanda',d1:2, d2:2, d3:3, d4:12,d5:10,d6:12,T:25,Q:28,F:25,Sp:30,Sm:40,Y:0,  X:23,total:212},
+  ]},
+  {id:2,scores:[
+    {p:'Bruno', d1:1, d2:2, d3:9, d4:8, d5:10,d6:18,T:23,Q:0, F:25,Sp:30,Sm:40,Y:0,  X:21,total:187},
+    {p:'Brenno',d1:2, d2:8, d3:9, d4:8, d5:15,d6:18,T:23,Q:0, F:25,Sp:30,Sm:40,Y:50, X:24,total:252},
+    {p:'Amanda',d1:4, d2:6, d3:6, d4:16,d5:15,d6:18,T:25,Q:29,F:25,Sp:30,Sm:0, Y:0,  X:26,total:200},
+  ]},
+  {id:3,scores:[
+    {p:'Bruno', d1:2, d2:2, d3:3, d4:8, d5:5, d6:18,T:26,Q:7, F:25,Sp:0, Sm:40,Y:50, X:23,total:209},
+    {p:'Brenno',d1:1, d2:4, d3:9, d4:12,d5:15,d6:24,T:23,Q:28,F:25,Sp:30,Sm:40,Y:0,  X:28,total:239},
+    {p:'Amanda',d1:3, d2:8, d3:9, d4:8, d5:10,d6:24,T:23,Q:29,F:25,Sp:30,Sm:40,Y:0,  X:28,total:237},
+  ]},
+  {id:4,scores:[
+    {p:'Bruno', d1:3, d2:2, d3:9, d4:12,d5:20,d6:6, T:20,Q:24,F:25,Sp:30,Sm:40,Y:0,  X:14,total:205},
+    {p:'Brenno',d1:1, d2:2, d3:6, d4:16,d5:15,d6:18,T:27,Q:23,F:25,Sp:30,Sm:40,Y:0,  X:25,total:228},
+    {p:'Amanda',d1:1, d2:4, d3:12,d4:8, d5:10,d6:18,T:24,Q:29,F:25,Sp:30,Sm:40,Y:0,  X:23,total:224},
+  ]},
+  {id:5,scores:[
+    {p:'Bruno', d1:1, d2:6, d3:6, d4:16,d5:20,d6:18,T:23,Q:0, F:25,Sp:30,Sm:40,Y:50, X:27,total:262},
+    {p:'Brenno',d1:2, d2:6, d3:9, d4:8, d5:20,d6:18,T:25,Q:0, F:25,Sp:30,Sm:40,Y:50, X:18,total:251},
+    {p:'Amanda',d1:1, d2:4, d3:6, d4:16,d5:15,d6:18,T:25,Q:0, F:25,Sp:30,Sm:40,Y:0,  X:17,total:197},
+  ]},
+  {id:6,scores:[
+    {p:'Bruno', d1:1, d2:4, d3:12,d4:12,d5:5, d6:24,T:27,Q:16,F:25,Sp:0, Sm:40,Y:0,  X:26,total:192},
+    {p:'Brenno',d1:2, d2:2, d3:9, d4:12,d5:5, d6:6, T:28,Q:19,F:25,Sp:30,Sm:0, Y:0,  X:25,total:163},
+    {p:'Amanda',d1:1, d2:4, d3:9, d4:16,d5:10,d6:6, T:24,Q:28,F:0, Sp:30,Sm:40,Y:0,  X:21,total:189},
+  ]},
+  {id:7,scores:[
+    {p:'Bruno', d1:2, d2:2, d3:9, d4:12,d5:10,d6:0, T:22,Q:26,F:25,Sp:30,Sm:40,Y:50, X:25,total:253},
+    {p:'Amanda',d1:1, d2:4, d3:6, d4:8, d5:10,d6:12,T:23,Q:18,F:25,Sp:30,Sm:40,Y:0,  X:26,total:203},
+    {p:'Arik',  d1:2, d2:2, d3:6, d4:16,d5:5, d6:12,T:24,Q:0, F:25,Sp:0, Sm:0, Y:0,  X:14,total:92},
+    {p:'Roni',  d1:2, d2:2, d3:3, d4:12,d5:15,d6:6, T:23,Q:0, F:25,Sp:0, Sm:0, Y:50, X:21,total:159},
+  ]},
+  {id:8,scores:[
+    {p:'Bruno', d1:4, d2:2, d3:12,d4:16,d5:25,d6:24,T:27,Q:0, F:25,Sp:30,Sm:0, Y:50, X:21,total:236},
+    {p:'Nhé',   d1:4, d2:2, d3:6, d4:8, d5:10,d6:24,T:19,Q:27,F:25,Sp:0, Sm:0, Y:0,  X:22,total:147},
+    {p:'Rafa',  d1:2, d2:2, d3:3, d4:16,d5:5, d6:12,T:27,Q:0, F:25,Sp:30,Sm:0, Y:50, X:22,total:194},
+    {p:'Brebre',d1:2, d2:2, d3:9, d4:8, d5:15,d6:24,T:24,Q:26,F:25,Sp:0, Sm:40,Y:0,  X:23,total:198},
+  ]},
+  {id:9,scores:[
+    {p:'Bruno', d1:3, d2:4, d3:9, d4:4, d5:15,d6:12,T:28,Q:0, F:25,Sp:30,Sm:40,Y:0,  X:20,total:190},
+    {p:'Brenno',d1:2, d2:4, d3:9, d4:16,d5:10,d6:6, T:25,Q:28,F:25,Sp:30,Sm:40,Y:0,  X:25,total:220},
+    {p:'Amanda',d1:1, d2:2, d3:12,d4:12,d5:10,d6:18,T:18,Q:0, F:25,Sp:0, Sm:0, Y:0,  X:12,total:110},
+  ]},
+  {id:10,scores:[
+    {p:'Bruno', d1:1, d2:4, d3:3, d4:8, d5:10,d6:12,T:27,Q:0, F:25,Sp:30,Sm:0, Y:0,  X:13,total:133},
+    {p:'Brenno',d1:1, d2:2, d3:3, d4:4, d5:10,d6:6, T:17,Q:29,F:25,Sp:30,Sm:40,Y:50, X:24,total:241},
+    {p:'Amanda',d1:2, d2:4, d3:9, d4:8, d5:5, d6:6, T:27,Q:29,F:25,Sp:0, Sm:0, Y:0,  X:25,total:140},
+    {p:'Rafa',  d1:2, d2:2, d3:6, d4:12,d5:15,d6:6, T:0, Q:0, F:25,Sp:30,Sm:40,Y:0,  X:20,total:158},
+  ]},
+  {id:11,scores:[
+    {p:'Bruno', d1:1, d2:6, d3:9, d4:4, d5:5, d6:18,T:22,Q:14,F:25,Sp:30,Sm:40,Y:0,  X:22,total:196},
+    {p:'Amanda',d1:1, d2:2, d3:12,d4:4, d5:15,d6:6, T:23,Q:0, F:25,Sp:30,Sm:40,Y:0,  X:21,total:179},
+    {p:'Rafa',  d1:2, d2:2, d3:3, d4:4, d5:0, d6:0, T:0, Q:28,F:25,Sp:0, Sm:0, Y:0,  X:23,total:87},
+  ]},
+  {id:12,scores:[
+    {p:'Bruno', d1:1, d2:4, d3:6, d4:12,d5:10,d6:12,T:28,Q:0, F:0, Sp:30,Sm:40,Y:0,  X:22,total:165},
+    {p:'Amanda',d1:2, d2:2, d3:6, d4:12,d5:15,d6:18,T:26,Q:29,F:25,Sp:0, Sm:40,Y:50, X:24,total:249},
+    {p:'Brenno',d1:1, d2:2, d3:3, d4:8, d5:15,d6:0, T:23,Q:24,F:25,Sp:30,Sm:40,Y:50, X:13,total:234},
+  ]},
+  {id:13,scores:[
+    {p:'Bruno', d1:4, d2:2, d3:9, d4:16,d5:10,d6:18,T:28,Q:22,F:25,Sp:30,Sm:40,Y:50, X:24,total:278},
+    {p:'Amanda',d1:2, d2:4, d3:9, d4:4, d5:15,d6:18,T:20,Q:0, F:25,Sp:0, Sm:40,Y:0,  X:24,total:161},
+    {p:'Brenno',d1:2, d2:6, d3:3, d4:16,d5:5, d6:18,T:25,Q:0, F:25,Sp:0, Sm:0, Y:50, X:25,total:175},
+  ]},
+  {id:14,scores:[
+    {p:'Bruno', d1:3, d2:2, d3:12,d4:16,d5:10,d6:18,T:27,Q:29,F:25,Sp:30,Sm:40,Y:50, X:20,total:282},
+    {p:'Amanda',d1:2, d2:2, d3:3, d4:16,d5:15,d6:18,T:27,Q:29,F:25,Sp:30,Sm:40,Y:0,  X:16,total:223},
+    {p:'Brenno',d1:1, d2:6, d3:9, d4:12,d5:15,d6:18,T:28,Q:28,F:25,Sp:30,Sm:40,Y:0,  X:24,total:236},
+  ]},
+  {id:15,scores:[
+    {p:'Bruno', d1:1, d2:2, d3:3, d4:4, d5:10,d6:12,T:12,Q:14,F:25,Sp:0, Sm:0, Y:0,  X:24,total:107},
+    {p:'Amanda',d1:2, d2:2, d3:6, d4:16,d5:10,d6:6, T:22,Q:19,F:25,Sp:0, Sm:40,Y:0,  X:14,total:162},
+    {p:'Brenno',d1:1, d2:2, d3:3, d4:8, d5:15,d6:12,T:21,Q:29,F:25,Sp:0, Sm:0, Y:0,  X:17,total:133},
+  ]},
+  {id:16,scores:[
+    {p:'Bruno', d1:1, d2:2, d3:3, d4:16,d5:15,d6:12,T:25,Q:26,F:0, Sp:0, Sm:0, Y:0,  X:17,total:117},
+    {p:'Amanda',d1:4, d2:2, d3:12,d4:8, d5:15,d6:18,T:19,Q:21,F:25,Sp:30,Sm:40,Y:50, X:23,total:267},
+    {p:'Brenno',d1:1, d2:6, d3:6, d4:12,d5:15,d6:18,T:23,Q:0, F:25,Sp:0, Sm:40,Y:0,  X:24,total:170},
+  ]},
+  {id:17,scores:[
+    {p:'Bruno', d1:2, d2:2, d3:3, d4:12,d5:5, d6:18,T:10,Q:0, F:25,Sp:0, Sm:0, Y:0,  X:16,total:93},
+    {p:'Amanda',d1:1, d2:2, d3:3, d4:12,d5:5, d6:18,T:27,Q:0, F:25,Sp:0, Sm:40,Y:0,  X:23,total:156},
+    {p:'Brenno',d1:4, d2:4, d3:6, d4:12,d5:5, d6:6, T:22,Q:19,F:25,Sp:30,Sm:0, Y:0,  X:24,total:157},
+    {p:'Joe',   d1:3, d2:2, d3:6, d4:16,d5:20,d6:18,T:18,Q:17,F:25,Sp:0, Sm:40,Y:0,  X:25,total:190},
+    {p:'Lari',  d1:1, d2:2, d3:3, d4:4, d5:5, d6:18,T:22,Q:0, F:25,Sp:0, Sm:0, Y:50, X:25,total:155},
+    {p:'Tha',   d1:2, d2:2, d3:3, d4:8, d5:20,d6:18,T:23,Q:26,F:25,Sp:0, Sm:40,Y:50, X:16,total:233},
+  ]},
+  {id:18,scores:[
+    {p:'Bruno', d1:1, d2:2, d3:6, d4:12,d5:10,d6:18,T:23,Q:0, F:25,Sp:0, Sm:0, Y:0,  X:16,total:113},
+    {p:'Amanda',d1:2, d2:2, d3:6, d4:8, d5:15,d6:18,T:27,Q:22,F:25,Sp:0, Sm:40,Y:0,  X:12,total:177},
+    {p:'Gi',    d1:4, d2:2, d3:3, d4:12,d5:5, d6:18,T:24,Q:24,F:25,Sp:0, Sm:40,Y:150,X:21,total:328},
+    {p:'Zé',    d1:1, d2:2, d3:3, d4:4, d5:10,d6:24,T:22,Q:21,F:25,Sp:30,Sm:40,Y:0,  X:24,total:206},
+    {p:'Brenno',d1:3, d2:8, d3:9, d4:4, d5:10,d6:12,T:24,Q:27,F:25,Sp:0, Sm:40,Y:0,  X:26,total:188},
+    {p:'Lari',  d1:1, d2:4, d3:6, d4:4, d5:15,d6:18,T:27,Q:0, F:25,Sp:0, Sm:0, Y:0,  X:25,total:125},
+    {p:'Tha',   d1:1, d2:2, d3:9, d4:12,d5:15,d6:12,T:28,Q:26,F:25,Sp:0, Sm:40,Y:0,  X:20,total:190},
+    {p:'Joe',   d1:1, d2:4, d3:6, d4:16,d5:15,d6:12,T:27,Q:22,F:25,Sp:0, Sm:40,Y:0,  X:23,total:191},
+  ]},
+  {id:19,scores:[
+    {p:'Bruno', d1:3, d2:6, d3:6, d4:8, d5:15,d6:18,T:20,Q:0, F:25,Sp:30,Sm:40,Y:0,  X:18,total:189},
+    {p:'Amanda',d1:3, d2:2, d3:12,d4:8, d5:20,d6:12,T:27,Q:26,F:25,Sp:0, Sm:40,Y:150,X:21,total:346},
+    {p:'Zé',    d1:1, d2:2, d3:3, d4:12,d5:5, d6:12,T:24,Q:22,F:25,Sp:30,Sm:40,Y:0,  X:24,total:200},
+    {p:'Brenno',d1:4, d2:2, d3:12,d4:12,d5:15,d6:18,T:23,Q:0, F:25,Sp:0, Sm:40,Y:50, X:19,total:220},
+    {p:'Lari',  d1:1, d2:4, d3:9, d4:8, d5:15,d6:24,T:24,Q:23,F:25,Sp:0, Sm:0, Y:50, X:22,total:205},
+    {p:'Tha',   d1:2, d2:2, d3:6, d4:12,d5:10,d6:18,T:25,Q:26,F:25,Sp:0, Sm:40,Y:0,  X:19,total:185},
+    {p:'Joe',   d1:3, d2:4, d3:6, d4:8, d5:10,d6:18,T:25,Q:26,F:25,Sp:30,Sm:40,Y:0,  X:23,total:218},
+  ]},
+  {id:20,scores:[
+    {p:'Bruno', d1:2, d2:2, d3:3, d4:8, d5:5, d6:6, T:23,Q:0, F:25,Sp:0, Sm:0, Y:0,  X:22,total:96},
+    {p:'Amanda',d1:2, d2:2, d3:12,d4:4, d5:10,d6:6, T:28,Q:7, F:25,Sp:0, Sm:40,Y:0,  X:20,total:156},
+    {p:'Brenno',d1:1, d2:2, d3:9, d4:8, d5:18,d6:12,T:24,Q:26,F:25,Sp:0, Sm:40,Y:0,  X:24,total:189},
+    {p:'Tha',   d1:2, d2:2, d3:6, d4:8, d5:15,d6:18,T:28,Q:26,F:25,Sp:0, Sm:40,Y:0,  X:23,total:193},
+    {p:'Joe',   d1:1, d2:6, d3:6, d4:8, d5:20,d6:18,T:23,Q:22,F:25,Sp:30,Sm:40,Y:0,  X:25,total:224},
+  ]},
+  {id:21,scores:[
+    {p:'Joe',   d1:2, d2:4, d3:3, d4:12,d5:5, d6:24,T:23,Q:26,F:25,Sp:30,Sm:0, Y:0,  X:16,total:170},
+    {p:'Tha',   d1:2, d2:4, d3:3, d4:4, d5:10,d6:12,T:21,Q:0, F:25,Sp:0, Sm:0, Y:50, X:27,total:158},
+    {p:'Brenno',d1:0, d2:8, d3:3, d4:8, d5:20,d6:18,T:23,Q:26,F:25,Sp:0, Sm:40,Y:0,  X:21,total:192},
+    {p:'Zé',    d1:1, d2:4, d3:9, d4:12,d5:20,d6:24,T:28,Q:28,F:25,Sp:0, Sm:40,Y:50, X:25,total:266},
+    {p:'Gi',    d1:1, d2:4, d3:6, d4:4, d5:10,d6:18,T:28,Q:29,F:25,Sp:0, Sm:0, Y:0,  X:24,total:149},
+    {p:'Amanda',d1:1, d2:2, d3:3, d4:12,d5:10,d6:6, T:25,Q:0, F:0, Sp:30,Sm:40,Y:0,  X:22,total:151},
+    {p:'Lari',  d1:1, d2:6, d3:6, d4:16,d5:15,d6:18,T:28,Q:18,F:0, Sp:30,Sm:40,Y:50, X:18,total:246},
+    {p:'Bruno', d1:4, d2:4, d3:6, d4:12,d5:10,d6:24,T:26,Q:26,F:25,Sp:30,Sm:40,Y:0,  X:23,total:230},
+  ]},
+  {id:22,scores:[
+    {p:'Bruno', d1:3, d2:4, d3:3, d4:4, d5:20,d6:6, T:23,Q:26,F:0, Sp:30,Sm:40,Y:0,  X:25,total:184},
+    {p:'Brenno',d1:2, d2:2, d3:6, d4:4, d5:15,d6:24,T:23,Q:25,F:25,Sp:30,Sm:0, Y:0,  X:23,total:179},
+    {p:'Zé',    d1:1, d2:2, d3:3, d4:16,d5:15,d6:18,T:22,Q:0, F:25,Sp:0, Sm:40,Y:0,  X:28,total:170},
+    {p:'Tha',   d1:3, d2:4, d3:3, d4:16,d5:15,d6:18,T:22,Q:29,F:25,Sp:30,Sm:0, Y:0,  X:14,total:179},
+    {p:'Joe',   d1:1, d2:4, d3:3, d4:16,d5:20,d6:18,T:24,Q:23,F:25,Sp:30,Sm:0, Y:50, X:22,total:236},
+    {p:'Amanda',d1:1, d2:4, d3:9, d4:12,d5:15,d6:12,T:23,Q:22,F:25,Sp:0, Sm:0, Y:0,  X:20,total:143},
+  ]},
+  {id:23,scores:[
+    {p:'Bruno', d1:1, d2:4, d3:6, d4:8, d5:20,d6:18,T:21,Q:22,F:25,Sp:30,Sm:0, Y:0,  X:21,total:176},
+    {p:'Brenno',d1:1, d2:4, d3:12,d4:16,d5:5, d6:12,T:24,Q:0, F:25,Sp:30,Sm:0, Y:0,  X:20,total:149},
+    {p:'Amanda',d1:1, d2:2, d3:3, d4:8, d5:15,d6:6, T:27,Q:0, F:25,Sp:30,Sm:0, Y:0,  X:13,total:130},
+  ]},
+  {id:24,scores:[
+    {p:'Bruno', d1:2, d2:4, d3:3, d4:12,d5:5, d6:6, T:24,Q:0, F:25,Sp:0, Sm:40,Y:50, X:21,total:192},
+    {p:'Amanda',d1:2, d2:2, d3:3, d4:4, d5:10,d6:18,T:24,Q:21,F:25,Sp:0, Sm:0, Y:0,  X:23,total:132},
+    {p:'Brenno',d1:1, d2:2, d3:6, d4:12,d5:15,d6:18,T:25,Q:26,F:25,Sp:0, Sm:40,Y:0,  X:24,total:194},
+  ]},
+  {id:25,scores:[
+    {p:'Bruno', d1:1, d2:4, d3:12,d4:12,d5:15,d6:18,T:22,Q:28,F:25,Sp:0, Sm:0, Y:0,  X:25,total:162},
+    {p:'Amanda',d1:1, d2:2, d3:3, d4:8, d5:10,d6:12,T:23,Q:0, F:25,Sp:0, Sm:0, Y:50, X:24,total:158},
+    {p:'Brenno',d1:1, d2:2, d3:6, d4:12,d5:5, d6:18,T:24,Q:26,F:25,Sp:30,Sm:40,Y:0,  X:23,total:212},
+    {p:'Joe',   d1:2, d2:6, d3:3, d4:8, d5:5, d6:18,T:24,Q:24,F:25,Sp:30,Sm:0, Y:50, X:24,total:219},
+  ]},
+  {id:26,scores:[
+    {p:'Bruno', d1:2, d2:2, d3:12,d4:16,d5:5, d6:12,T:28,Q:25,F:25,Sp:0, Sm:40,Y:0,  X:22,total:189},
+    {p:'Amanda',d1:3, d2:2, d3:12,d4:16,d5:20,d6:12,T:28,Q:19,F:25,Sp:0, Sm:0, Y:50, X:18,total:205},
+    {p:'Brenno',d1:1, d2:4, d3:6, d4:12,d5:20,d6:18,T:26,Q:29,F:25,Sp:0, Sm:40,Y:50, X:25,total:256},
+  ]},
+  {id:27,scores:[
+    {p:'Brenno',d1:2, d2:4, d3:3, d4:4, d5:10,d6:18,T:27,Q:29,F:25,Sp:30,Sm:0, Y:0,  X:18,total:170},
+    {p:'Bruno', d1:2, d2:4, d3:9, d4:4, d5:10,d6:12,T:27,Q:17,F:25,Sp:30,Sm:40,Y:50, X:23,total:253},
+    {p:'Amanda',d1:2, d2:4, d3:6, d4:4, d5:10,d6:18,T:28,Q:29,F:25,Sp:30,Sm:0, Y:0,  X:22,total:178},
+  ]},
+  {id:28,scores:[
+    {p:'Bruno', d1:3, d2:2, d3:3, d4:4, d5:10,d6:12,T:22,Q:22,F:0, Sp:30,Sm:0, Y:0,  X:19,total:127},
+    {p:'Amanda',d1:2, d2:2, d3:6, d4:12,d5:20,d6:6, T:23,Q:0, F:25,Sp:0, Sm:40,Y:50, X:19,total:205},
+  ]},
+  {id:29,scores:[
+    {p:'Bruno', d1:2, d2:2, d3:3, d4:4, d5:10,d6:18,T:22,Q:23,F:25,Sp:0, Sm:0, Y:0,  X:20,total:129},
+    {p:'Amanda',d1:1, d2:4, d3:3, d4:4, d5:10,d6:18,T:25,Q:17,F:25,Sp:30,Sm:40,Y:0,  X:23,total:200},
+    {p:'Brenno',d1:1, d2:8, d3:9, d4:16,d5:15,d6:18,T:23,Q:25,F:25,Sp:30,Sm:40,Y:0,  X:22,total:232},
+    {p:'Rafa',  d1:2, d2:4, d3:9, d4:12,d5:15,d6:24,T:20,Q:28,F:25,Sp:0, Sm:40,Y:0,  X:24,total:203},
+  ]},
+  {id:30,scores:[
+    {p:'Bruno', d1:3, d2:2, d3:12,d4:16,d5:10,d6:12,T:23,Q:21,F:25,Sp:30,Sm:0, Y:0,  X:14,total:168},
+    {p:'Amanda',d1:2, d2:2, d3:9, d4:12,d5:15,d6:18,T:23,Q:25,F:25,Sp:30,Sm:40,Y:150,X:20,total:371},
+    {p:'Brenno',d1:2, d2:2, d3:12,d4:12,d5:10,d6:18,T:27,Q:0, F:25,Sp:0, Sm:0, Y:0,  X:22,total:130},
+  ]},
+  {id:31,scores:[
+    {p:'Bruno', d1:1, d2:2, d3:6, d4:12,d5:15,d6:24,T:27,Q:27,F:25,Sp:0, Sm:0, Y:0,  X:23,total:162},
+    {p:'Amanda',d1:2, d2:4, d3:6, d4:12,d5:15,d6:12,T:20,Q:0, F:25,Sp:30,Sm:40,Y:0,  X:15,total:181},
+    {p:'Brenno',d1:2, d2:2, d3:6, d4:12,d5:10,d6:18,T:25,Q:21,F:25,Sp:30,Sm:40,Y:0,  X:20,total:211},
+  ]},
+  {id:32,scores:[
+    {p:'Bruno', d1:2, d2:2, d3:3, d4:16,d5:15,d6:6, T:23,Q:26,F:25,Sp:30,Sm:40,Y:0,  X:18,total:206},
+    {p:'Amanda',d1:2, d2:4, d3:3, d4:12,d5:10,d6:12,T:20,Q:26,F:25,Sp:0, Sm:0, Y:0,  X:17,total:131},
+    {p:'Brenno',d1:1, d2:2, d3:9, d4:12,d5:15,d6:18,T:26,Q:28,F:25,Sp:30,Sm:40,Y:0,  X:24,total:230},
+  ]},
+  {id:33,scores:[
+    {p:'Brenno',d1:3, d2:4, d3:6, d4:4, d5:10,d6:6, T:20,Q:0, F:25,Sp:30,Sm:0, Y:0,  X:16,total:124},
+    {p:'Bruno', d1:1, d2:6, d3:6, d4:8, d5:20,d6:18,T:24,Q:22,F:25,Sp:30,Sm:40,Y:50, X:27,total:277},
+    {p:'Rafa',  d1:1, d2:2, d3:3, d4:12,d5:10,d6:18,T:22,Q:11,F:25,Sp:30,Sm:40,Y:0,  X:27,total:201},
+    {p:'Amanda',d1:4, d2:6, d3:6, d4:8, d5:10,d6:18,T:22,Q:26,F:25,Sp:30,Sm:40,Y:50, X:23,total:268},
+  ]},
+  {id:34,scores:[
+    {p:'Brenno',d1:2, d2:2, d3:3, d4:4, d5:5, d6:18,T:27,Q:21,F:25,Sp:0, Sm:40,Y:50, X:23,total:220},
+    {p:'Bruno', d1:1, d2:2, d3:6, d4:16,d5:15,d6:6, T:0, Q:24,F:25,Sp:30,Sm:40,Y:50, X:9, total:224},
+    {p:'Amanda',d1:2, d2:8, d3:6, d4:16,d5:15,d6:18,T:24,Q:29,F:25,Sp:30,Sm:0, Y:0,  X:13,total:186},
+  ]},
+  {id:35,scores:[
+    {p:'Brenno',d1:1, d2:4, d3:3, d4:16,d5:15,d6:24,T:24,Q:22,F:25,Sp:30,Sm:40,Y:50, X:26,total:280},
+    {p:'Bruno', d1:1, d2:2, d3:3, d4:8, d5:5, d6:18,T:21,Q:22,F:25,Sp:0, Sm:40,Y:150,X:17,total:312},
+    {p:'Amanda',d1:2, d2:2, d3:12,d4:12,d5:10,d6:12,T:27,Q:26,F:25,Sp:30,Sm:0, Y:0,  X:23,total:181},
+  ]},
+  {id:36,scores:[
+    {p:'Bruno', d1:1, d2:2, d3:12,d4:12,d5:5, d6:24,T:23,Q:25,F:25,Sp:30,Sm:0, Y:50, X:14,total:223},
+    {p:'Amanda',d1:1, d2:2, d3:3, d4:12,d5:20,d6:18,T:21,Q:26,F:25,Sp:0, Sm:40,Y:0,  X:24,total:192},
+    {p:'Brenno',d1:4, d2:2, d3:12,d4:12,d5:5, d6:18,T:23,Q:0, F:25,Sp:30,Sm:0, Y:0,  X:14,total:145},
+  ]},
+  {id:37,scores:[
+    {p:'Bruno', d1:1, d2:2, d3:12,d4:12,d5:5, d6:24,T:23,Q:25,F:25,Sp:30,Sm:0, Y:50, X:14,total:223},
+    {p:'Amanda',d1:1, d2:2, d3:3, d4:12,d5:20,d6:18,T:21,Q:26,F:25,Sp:0, Sm:40,Y:0,  X:24,total:192},
+    {p:'Brenno',d1:4, d2:2, d3:12,d4:12,d5:5, d6:18,T:23,Q:0, F:25,Sp:30,Sm:0, Y:0,  X:14,total:145},
+  ]},
+  {id:38,scores:[
+    {p:'Bruno', d1:1, d2:4, d3:9, d4:12,d5:10,d6:18,T:25,Q:0, F:25,Sp:0, Sm:40,Y:0,  X:23,total:167},
+    {p:'Brenno',d1:1, d2:4, d3:3, d4:8, d5:10,d6:18,T:28,Q:0, F:25,Sp:30,Sm:40,Y:50, X:22,total:239},
+  ]},
+  {id:39,scores:[
+    {p:'Bruno', d1:1, d2:2, d3:9, d4:8, d5:5, d6:24,T:27,Q:21,F:25,Sp:30,Sm:40,Y:50, X:18,total:260},
+    {p:'Arik',  d1:2, d2:6, d3:9, d4:8, d5:15,d6:18,T:22,Q:24,F:25,Sp:30,Sm:40,Y:0,  X:23,total:222},
+    {p:'Brenno',d1:3, d2:4, d3:6, d4:16,d5:15,d6:18,T:24,Q:22,F:25,Sp:30,Sm:40,Y:50, X:23,total:276},
+    {p:'Amanda',d1:2, d2:2, d3:6, d4:4, d5:15,d6:12,T:24,Q:29,F:25,Sp:30,Sm:0, Y:0,  X:17,total:166},
+  ]},
+];
+
+const CATS = [
+  {k:'d1', s:'1',  n:'Uns',        kind:'mult', step:1,  sec:'Superiores'},
+  {k:'d2', s:'2',  n:'Dois',       kind:'mult', step:2,  sec:'Superiores'},
+  {k:'d3', s:'3',  n:'Três',       kind:'mult', step:3,  sec:'Superiores'},
+  {k:'d4', s:'4',  n:'Quatro',     kind:'mult', step:4,  sec:'Superiores'},
+  {k:'d5', s:'5',  n:'Cinco',      kind:'mult', step:5,  sec:'Superiores'},
+  {k:'d6', s:'6',  n:'Seis',       kind:'mult', step:6,  sec:'Superiores'},
+  {k:'T',  s:'T',  n:'Trinca',     kind:'num',  max:30,  sec:'Combinações'},
+  {k:'Q',  s:'Q',  n:'Quadra',     kind:'num',  max:30,  sec:'Combinações'},
+  {k:'F',  s:'F',  n:'Full house', kind:'fix',  val:25,  sec:'Combinações'},
+  {k:'Sp', s:'S+', n:'Sequência +',kind:'fix',  val:30,  sec:'Combinações'},
+  {k:'Sm', s:'S−', n:'Sequência −',kind:'fix',  val:40,  sec:'Combinações'},
+  {k:'Y',  s:'Y',  n:'Yatzi',      kind:'set',  opts:[0,50,150], sec:'Combinações'},
+  {k:'X',  s:'X',  n:'Chance',     kind:'num',  max:30,  sec:'Combinações'},
+];
+const KEYS = CATS.map(c => c.k);
+
+const PALETTE = ['#007AFF','#34C759','#FF9500','#AF52DE','#FF2D55','#5856D6','#30B0C7','#FFCC00','#FF3B30','#64D2FF'];
+
+/* ---- persistence ---- */
+const LS_KEY = 'yatzi.games.v1';
+let userGames = [];
+try {
+  const raw = localStorage.getItem(LS_KEY);
+  if (raw) userGames = JSON.parse(raw) || [];
+} catch (e) { userGames = []; }
+
+function persist() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(userGames)); } catch (e) {}
+}
+
+/* All games, seed first then user-recorded, renumbered in play order. */
+let GAMES = [];
+function rebuild() {
+  GAMES = SEED_GAMES.concat(userGames).map((g, i) => ({ ...g, id: i + 1 }));
+}
+rebuild();
+
+/* ---- colour assignment: named players keep their hue, newcomers get one ---- */
+const hueCache = {};
+function colorOf(name) {
+  if (COLORS[name]) return COLORS[name];
+  if (hueCache[name]) return hueCache[name];
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  hueCache[name] = PALETTE[h % PALETTE.length];
+  return hueCache[name];
+}
+const initials = n => n.trim().slice(0, 2).toUpperCase();
+const avatar = (n, lg) =>
+  `<div class="av${lg ? ' av-lg' : ''}" style="background:${colorOf(n)}">${initials(n)}</div>`;
+
+/* ============================================================
+   2. Stats
+   ============================================================ */
+
+function computeStats() {
+  const st = {};
+  GAMES.forEach(g => {
+    const best = Math.max(...g.scores.map(s => s.total));
+    g.scores.forEach(s => {
+      const p = st[s.p] || (st[s.p] = {
+        name: s.p, games: 0, wins: 0, totals: [], yatzis: 0,
+        cat: Object.fromEntries(KEYS.map(k => [k, 0]))
+      });
+      p.games++;
+      if (s.total === best) p.wins++;
+      p.totals.push(s.total);
+      p.yatzis += s.Y >= 150 ? 2 : (s.Y > 0 ? 1 : 0);
+      KEYS.forEach(k => { p.cat[k] += (s[k] || 0); });
+    });
+  });
+  Object.values(st).forEach(p => {
+    const sum = p.totals.reduce((a, b) => a + b, 0);
+    p.avg = Math.round(sum / p.games);
+    p.max = Math.max(...p.totals);
+    p.min = Math.min(...p.totals);
+    p.wr  = Math.round(p.wins / p.games * 100);
+    KEYS.forEach(k => { p.cat[k] = +(p.cat[k] / p.games).toFixed(1); });
+  });
+  return st;
+}
+let STATS = computeStats();
+
+/* Players ranked: wins, then average. */
+function ranked(minGames) {
+  return Object.values(STATS)
+    .filter(p => p.games >= (minGames || 1))
+    .sort((a, b) => b.wins - a.wins || b.avg - a.avg);
+}
+/* The three most active players — charts follow whoever actually plays,
+   so newly recorded regulars take their place over time. */
+function core() {
+  return Object.values(STATS).sort((a, b) => b.games - a.games).slice(0, 3).map(p => p.name);
+}
+
+/* ============================================================
+   3. Navigation
+   ============================================================ */
+
+function go(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === 's-' + name));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.s === name));
+  window.scrollTo(0, 0);
+  if (name === 'stats') requestAnimationFrame(drawCharts);
+}
+
+function openSheet(title, html) {
+  document.getElementById('sheet-t').textContent = title;
+  document.getElementById('sheet-body').innerHTML = html;
+  document.getElementById('sheet').classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+function closeSheet() {
+  document.getElementById('sheet').classList.remove('on');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+
+/* ============================================================
+   4. Render — Início
+   ============================================================ */
+
+function renderHome() {
+  const totalGames = GAMES.length;
+  const players = Object.keys(STATS).length;
+  const allScores = GAMES.flatMap(g => g.scores);
+  const record = allScores.reduce((a, b) => a.total > b.total ? a : b);
+
+  document.getElementById('home-sub').textContent =
+    `${totalGames} partidas · ${players} jogadores`;
+
+  document.getElementById('home-hero').innerHTML = [
+    { n: totalGames, l: 'Partidas' },
+    { n: record.total, l: 'Recorde' },
+    { n: Math.round(allScores.reduce((a, s) => a + s.total, 0) / allScores.length), l: 'Média' },
+  ].map(c => `<div class="hero-cell"><div class="hero-n">${c.n}</div><div class="hero-l">${c.l}</div></div>`).join('');
+
+  /* podium — 2nd, 1st, 3rd so the winner sits centre */
+  const top = ranked(1).slice(0, 3);
+  const order = [top[1], top[0], top[2]].filter(Boolean);
+  /* keyed by placing, tallest bar to the winner */
+  const heights = { 0: 62, 1: 44, 2: 34 };
+  document.getElementById('home-podium').innerHTML = order.map(p => {
+    const place = top.indexOf(p);
+    return `<div class="pod">
+      ${avatar(p.name, place === 0)}
+      <div class="pod-name">${esc(p.name)}</div>
+      <div class="pod-w">${p.wins} ${p.wins === 1 ? 'vitória' : 'vitórias'}</div>
+      <div class="pod-bar" style="height:${heights[place]}px;background:${colorOf(p.name)}">${place + 1}</div>
+    </div>`;
+  }).join('');
+
+  /* recent games */
+  const recent = GAMES.slice(-5).reverse();
+  document.getElementById('home-recent').innerHTML =
+    recent.map(g => gameRow(g)).join('') +
+    `<div class="row row-tap" onclick="go('games')">
+       <div class="row-main"><div class="row-title" style="color:var(--blue)">Ver todas</div></div>
+     </div>`;
+
+  /* records */
+  const sorted = [...allScores].sort((a, b) => b.total - a.total);
+  const yTotal = Object.values(STATS).reduce((a, p) => a + p.yatzis, 0);
+  const biggest = GAMES.reduce((a, b) => b.scores.length > a.scores.length ? b : a);
+  document.getElementById('home-records').innerHTML = [
+    ['Maior pontuação', `${sorted[0].total}`, sorted[0].p],
+    ['Segunda maior', `${sorted[1].total}`, sorted[1].p],
+    ['Yatzis no total', `${yTotal}`, 'todo o grupo'],
+    ['Maior mesa', `${biggest.scores.length}`, `partida ${biggest.id}`],
+  ].map(([t, v, s]) => `
+    <div class="row">
+      <div class="row-main"><div class="row-title">${t}</div><div class="row-sub">${esc(s)}</div></div>
+      <div class="row-val" style="color:var(--label);font-weight:600">${v}</div>
+    </div>`).join('');
+}
+
+function gameRow(g) {
+  const win = g.scores.reduce((a, b) => a.total > b.total ? a : b);
+  const isNew = !!g.custom;
+  return `<div class="row row-tap" onclick="showGame(${g.id})">
+    ${avatar(win.p)}
+    <div class="row-main">
+      <div class="row-title">Partida ${g.id}${isNew ? ' <span class="tag tag-new">nova</span>' : ''}</div>
+      <div class="row-sub">${esc(win.p)} venceu · ${g.scores.length} jogadores${g.date ? ' · ' + fmtDate(g.date) : ''}</div>
+    </div>
+    <div class="row-val">${win.total}</div>
+    <svg class="chev" viewBox="0 0 7 12" fill="none"><path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>`;
+}
+
+/* ============================================================
+   5. Render — Partidas
+   ============================================================ */
+
+function renderGames() {
+  document.getElementById('games-sub').textContent =
+    userGames.length
+      ? `${GAMES.length} no total · ${userGames.length} registradas aqui`
+      : `${GAMES.length} no total`;
+  document.getElementById('games-list').innerHTML =
+    [...GAMES].reverse().map(g => gameRow(g)).join('');
+}
+
+function showGame(id) {
+  const g = GAMES.find(x => x.id === id);
+  if (!g) return;
+  const best = Math.max(...g.scores.map(s => s.total));
+  const del = g.custom
+    ? `<div class="btn-wrap"><button class="btn btn-tint" style="color:var(--red)" onclick="deleteGame(${id})">Apagar partida</button></div>`
+    : '';
+  openSheet(`Partida ${g.id}`, `
+    <div class="group" style="margin-top:16px">
+      <div class="group-hdr">Resultado</div>
+      <div class="list">${
+        [...g.scores].sort((a, b) => b.total - a.total).map((s, i) => `
+          <div class="row">
+            <div class="rank-n">${i + 1}</div>
+            ${avatar(s.p)}
+            <div class="row-main"><div class="row-title">${esc(s.p)}</div></div>
+            <div class="row-val" style="${s.total === best ? 'color:var(--green);font-weight:600' : ''}">${s.total}</div>
+          </div>`).join('')
+      }</div>
+    </div>
+    <div class="group">
+      <div class="group-hdr">Placar</div>
+      <div class="sc-scroll list">${scorecard(g)}</div>
+    </div>${del}`);
+}
+
+function scorecard(g) {
+  const best = Math.max(...g.scores.map(s => s.total));
+  let h = `<table class="sc"><thead><tr><th class="cat"></th>${
+    g.scores.map(s => `<th style="color:${colorOf(s.p)}">${esc(s.p)}</th>`).join('')
+  }</tr></thead><tbody>`;
+  CATS.forEach(c => {
+    h += `<tr><td class="cat"><b>${c.s}</b>${c.n}</td>${
+      g.scores.map(s => {
+        const v = s[c.k] || 0;
+        return `<td class="${v === 0 ? 'nil' : ''}">${v}</td>`;
+      }).join('')
+    }</tr>`;
+  });
+  h += `<tr class="tot"><td class="cat"><b></b>Total</td>${
+    g.scores.map(s => `<td class="${s.total === best ? 'win' : ''}">${s.total}</td>`).join('')
+  }</tr></tbody></table>`;
+  return h;
+}
+
+function deleteGame(id) {
+  const g = GAMES.find(x => x.id === id);
+  if (!g || !g.custom) return;
+  const i = userGames.findIndex(u => u.uid === g.uid);
+  if (i < 0) return;
+  userGames.splice(i, 1);
+  persist();
+  refreshAll();
+  closeSheet();
+}
+
+/* ============================================================
+   6. Render — Stats
+   ============================================================ */
+
+function renderStats() {
+  const withWins = ranked(1).filter(p => p.wins > 0).slice(0, 8);
+  const maxW = Math.max(...withWins.map(p => p.wins), 1);
+  document.getElementById('stat-wins').innerHTML = withWins.map(p => `
+    <div class="bl">
+      <div class="bl-n">${esc(p.name)}</div>
+      <div class="bl-t"><div class="bl-f" style="width:${p.wins / maxW * 100}%;background:${colorOf(p.name)}"></div></div>
+      <div class="bl-v">${p.wins}</div>
+    </div>`).join('');
+
+  const byAvg = Object.values(STATS).filter(p => p.games >= 3).sort((a, b) => b.avg - a.avg).slice(0, 8);
+  const maxA = Math.max(...byAvg.map(p => p.avg), 1);
+  document.getElementById('stat-avg').innerHTML = byAvg.map(p => `
+    <div class="bl">
+      <div class="bl-n">${esc(p.name)}</div>
+      <div class="bl-t"><div class="bl-f" style="width:${p.avg / maxA * 100}%;background:${colorOf(p.name)}"></div></div>
+      <div class="bl-v">${p.avg}</div>
+    </div>`).join('');
+
+  document.getElementById('stat-all').innerHTML = ranked(1).map(p => `
+    <div class="row row-tap" onclick="showPlayer('${esc(p.name).replace(/'/g, "\\'")}')">
+      ${avatar(p.name)}
+      <div class="row-main">
+        <div class="row-title">${esc(p.name)}</div>
+        <div class="row-sub">${p.games} ${p.games === 1 ? 'partida' : 'partidas'} · ${p.wr}% de vitória</div>
+      </div>
+      <div class="row-val">${p.avg}</div>
+      <svg class="chev" viewBox="0 0 7 12" fill="none"><path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>`).join('');
+}
+
+function showPlayer(name) {
+  const p = STATS[name];
+  if (!p) return;
+  const rows = [
+    ['Partidas', p.games], ['Vitórias', p.wins], ['Aproveitamento', p.wr + '%'],
+    ['Melhor', p.max], ['Média', p.avg], ['Pior', p.min], ['Yatzis', p.yatzis],
+  ];
+  const catRows = CATS.map(c => {
+    const v = p.cat[c.k];
+    return `<div class="row"><div class="row-main"><div class="row-title">${c.n}</div></div><div class="row-val">${v}</div></div>`;
+  }).join('');
+  openSheet(name, `
+    <div class="group" style="margin-top:16px">
+      <div class="list" style="padding:18px 0;text-align:center">
+        <div style="display:flex;justify-content:center">${avatar(name, true)}</div>
+        <div style="font-size:22px;font-weight:600;letter-spacing:-.02em;margin-top:10px">${esc(name)}</div>
+        <div style="color:var(--label-2);font-size:15px;margin-top:2px">média de ${p.avg} pontos</div>
+      </div>
+    </div>
+    <div class="group"><div class="group-hdr">Resumo</div><div class="list">${
+      rows.map(([t, v]) => `<div class="row"><div class="row-main"><div class="row-title">${t}</div></div><div class="row-val">${v}</div></div>`).join('')
+    }</div></div>
+    <div class="group"><div class="group-hdr">Média por categoria</div><div class="list">${catRows}</div></div>`);
+}
+
+/* ---------- Canvas charts ---------- */
+function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+function setupCanvas(cv, h) {
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth || cv.parentElement.clientWidth;
+  cv.width = w * dpr; cv.height = h * dpr;
+  cv.style.height = h + 'px';
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  return { ctx, w, h };
+}
+
+function drawCharts() { drawEvolution(); drawCategories(); }
+
+function drawEvolution() {
+  const cv = document.getElementById('c-evo');
+  if (!cv || !cv.clientWidth) return;
+  const { ctx, w, h } = setupCanvas(cv, 200);
+  const padL = 30, padR = 6, padT = 10, padB = 20;
+  const iw = w - padL - padR, ih = h - padT - padB;
+
+  const series = core().map(p => ({
+    name: p, color: colorOf(p),
+    pts: GAMES.map((g, i) => {
+      const s = g.scores.find(x => x.p === p);
+      return s ? { x: i, y: s.total } : null;
+    }).filter(Boolean)
+  })).filter(s => s.pts.length > 1);
+  if (!series.length) return;
+
+  const maxY = Math.ceil(Math.max(...series.flatMap(s => s.pts.map(p => p.y))) / 50) * 50;
+  const maxX = GAMES.length - 1;
+  const X = i => padL + (maxX ? i / maxX : 0) * iw;
+  const Y = v => padT + ih - (v / maxY) * ih;
+
+  /* grid + axis labels */
+  ctx.strokeStyle = cssVar('--grid'); ctx.lineWidth = 1;
+  ctx.fillStyle = cssVar('--label-3');
+  ctx.font = '500 10px -apple-system,BlinkMacSystemFont,sans-serif';
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  for (let v = 0; v <= maxY; v += 100) {
+    const y = Math.round(Y(v)) + .5;
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke();
+    ctx.fillText(v, padL - 7, y);
+  }
+
+  /* lines */
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  series.forEach(s => {
+    ctx.strokeStyle = s.color; ctx.lineWidth = 2;
+    ctx.beginPath();
+    s.pts.forEach((p, i) => { const x = X(p.x), y = Y(p.y); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+    ctx.stroke();
+    /* emphasise the most recent point */
+    const last = s.pts[s.pts.length - 1];
+    ctx.fillStyle = s.color;
+    ctx.beginPath(); ctx.arc(X(last.x), Y(last.y), 3.2, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = cssVar('--surface'); ctx.lineWidth = 1.6; ctx.stroke();
+  });
+
+  document.getElementById('evo-leg').innerHTML =
+    series.map(s => `<span class="leg"><i style="background:${s.color}"></i>${esc(s.name)}</span>`).join('');
+}
+
+function drawCategories() {
+  const cv = document.getElementById('c-cat');
+  if (!cv || !cv.clientWidth) return;
+  const { ctx, w, h } = setupCanvas(cv, 210);
+  const padL = 4, padR = 4, padT = 8, padB = 22;
+  const iw = w - padL - padR, ih = h - padT - padB;
+
+  const players = core();
+  if (!players.length) return;
+  const maxV = Math.max(...players.flatMap(p => KEYS.map(k => STATS[p].cat[k])));
+  const groupW = iw / CATS.length;
+  const barW = Math.max(2, (groupW - 4) / players.length);
+
+  ctx.font = '500 9px -apple-system,BlinkMacSystemFont,sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+
+  CATS.forEach((c, ci) => {
+    const gx = padL + ci * groupW + 2;
+    players.forEach((p, pi) => {
+      const v = STATS[p].cat[c.k];
+      const bh = (v / maxV) * ih;
+      const x = gx + pi * barW, y = padT + ih - bh;
+      ctx.fillStyle = colorOf(p);
+      const r = Math.min(2, barW / 2);
+      ctx.beginPath();
+      ctx.moveTo(x, y + bh); ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.lineTo(x + barW - 1 - r, y);
+      ctx.quadraticCurveTo(x + barW - 1, y, x + barW - 1, y + r);
+      ctx.lineTo(x + barW - 1, y + bh);
+      ctx.closePath(); ctx.fill();
+    });
+    ctx.fillStyle = cssVar('--label-3');
+    ctx.fillText(c.s, gx + (groupW - 4) / 2, padT + ih + 6);
+  });
+
+  document.getElementById('cat-leg').innerHTML =
+    players.map(p => `<span class="leg"><i style="background:${colorOf(p)}"></i>${esc(p)}</span>`).join('');
+}
+
+/* ============================================================
+   7. Jogar — recording a live game
+   ============================================================ */
+
+let draft = { players: [], scores: {}, active: 0, finished: false };
+
+function renderSetup() {
+  const list = document.getElementById('p-list');
+  const g = document.getElementById('p-list-g');
+  g.hidden = draft.players.length === 0;
+  list.innerHTML = draft.players.map((n, i) => `
+    <div class="row">
+      ${avatar(n)}
+      <div class="row-main"><div class="row-title">${esc(n)}</div></div>
+      <button class="btn-plain" style="color:var(--red);font-size:15px" onclick="removePlayer(${i})">Remover</button>
+    </div>`).join('');
+
+  /* suggestions from people who already have history */
+  const known = ranked(1).map(p => p.name).filter(n => !draft.players.includes(n)).slice(0, 5);
+  const sg = document.getElementById('p-sug-g');
+  sg.hidden = known.length === 0 || draft.players.length >= 8;
+  document.getElementById('p-sug').innerHTML = known.map(n => `
+    <div class="row row-tap" onclick="addPlayer('${esc(n).replace(/'/g, "\\'")}')">
+      ${avatar(n)}
+      <div class="row-main"><div class="row-title">${esc(n)}</div><div class="row-sub">${STATS[n].games} partidas · média ${STATS[n].avg}</div></div>
+      <div class="row-val" style="color:var(--blue);font-size:22px;line-height:1">+</div>
+    </div>`).join('');
+
+  const ok = draft.players.length >= 2;
+  document.getElementById('p-start').disabled = !ok;
+  document.getElementById('p-hint').textContent = ok
+    ? `${draft.players.length} jogadores prontos.`
+    : 'Mínimo de 2 jogadores.';
+}
+
+function addPlayer(preset) {
+  const input = document.getElementById('p-name');
+  const name = (preset || input.value).trim();
+  if (!name) { input.focus(); return; }
+  if (draft.players.length >= 8) return;
+  if (draft.players.some(p => p.toLowerCase() === name.toLowerCase())) {
+    input.value = ''; input.focus(); return;
+  }
+  draft.players.push(name);
+  input.value = '';
+  if (!preset) input.focus();
+  renderSetup();
+}
+function removePlayer(i) { draft.players.splice(i, 1); renderSetup(); }
+
+document.getElementById('p-name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); addPlayer(); }
+});
+
+function startGame() {
+  if (draft.players.length < 2) return;
+  draft.scores = {};
+  draft.players.forEach(p => { draft.scores[p] = Object.fromEntries(KEYS.map(k => [k, null])); });
+  draft.active = 0;
+  draft.finished = false;
+  document.getElementById('play-setup').hidden = true;
+  document.getElementById('play-result').hidden = true;
+  document.getElementById('play-score').hidden = false;
+  document.getElementById('play-sub').textContent = draft.players.join(' · ');
+  renderScoring();
+  window.scrollTo(0, 0);
+}
+
+function filledCount(p) { return KEYS.filter(k => draft.scores[p][k] !== null).length; }
+
+function renderScoring() {
+  /* segmented control — one segment per player, with fill progress */
+  document.getElementById('play-seg').innerHTML = draft.players.map((p, i) => {
+    const done = filledCount(p);
+    return `<button class="seg-i${i === draft.active ? ' on' : ''}" onclick="switchPlayer(${i})">
+      ${esc(p)} <span style="opacity:.5;font-variant-numeric:tabular-nums">${done}/13</span>
+    </button>`;
+  }).join('');
+
+  const p = draft.players[draft.active];
+  const sc = draft.scores[p];
+  let html = '';
+  let sec = null;
+
+  CATS.forEach(c => {
+    if (c.sec !== sec) {
+      if (sec !== null) html += '</div></div>';
+      html += `<div class="group"><div class="group-hdr">${c.sec}</div><div class="list">`;
+      sec = c.sec;
+    }
+    const v = sc[c.k];
+    html += `<div class="row">
+      <div class="row-main">
+        <div class="row-title">${c.n}</div>
+        <div class="row-sub">${catHint(c)}</div>
+      </div>
+      ${control(c, v)}
+    </div>`;
+  });
+  html += '</div></div>';
+
+  /* per-player progress, no score revealed */
+  const done = filledCount(p);
+  html += `<div class="group"><div class="list">
+    <div class="row">
+      <div class="row-main"><div class="row-title">Preenchido</div></div>
+      <div class="prog">
+        <div class="prog-t"><div class="prog-f" style="width:${done / 13 * 100}%"></div></div>
+        <span>${done}/13</span>
+      </div>
+    </div>
+  </div></div>`;
+
+  document.getElementById('play-card').innerHTML = html;
+}
+
+function catHint(c) {
+  if (c.kind === 'mult') return `múltiplos de ${c.step}`;
+  if (c.kind === 'fix')  return `${c.val} pontos`;
+  if (c.kind === 'set')  return 'simples 50 · duplo 150';
+  return 'soma dos dados';
+}
+
+function control(c, v) {
+  if (c.kind === 'mult') {
+    const opts = [0, 1, 2, 3, 4, 5].map(m => m * c.step);
+    return `<div class="chips">${opts.map(o =>
+      `<button class="chip${v === o ? (o === 0 ? ' on chip-z' : ' on') : ''}" onclick="setVal('${c.k}',${o})">${o}</button>`
+    ).join('')}</div>`;
+  }
+  if (c.kind === 'fix') {
+    return `<div class="chips">
+      <button class="chip${v === 0 ? ' on chip-z' : ''}" onclick="setVal('${c.k}',0)">0</button>
+      <button class="chip${v === c.val ? ' on' : ''}" onclick="setVal('${c.k}',${c.val})">${c.val}</button>
+    </div>`;
+  }
+  if (c.kind === 'set') {
+    return `<div class="chips">${c.opts.map(o =>
+      `<button class="chip${v === o ? (o === 0 ? ' on chip-z' : ' on') : ''}" onclick="setVal('${c.k}',${o})">${o}</button>`
+    ).join('')}</div>`;
+  }
+  return `<input class="num-in" type="number" inputmode="numeric" min="0" max="${c.max}"
+    value="${v === null ? '' : v}" placeholder="—"
+    oninput="setVal('${c.k}', this.value === '' ? null : Math.max(0, Math.min(${c.max}, +this.value)))">`;
+}
+
+function setVal(key, val) {
+  const p = draft.players[draft.active];
+  const cur = draft.scores[p][key];
+  /* tapping the selected chip again clears it */
+  draft.scores[p][key] = (cur === val && val !== null) ? null : val;
+  renderScoring();
+}
+
+function switchPlayer(i) { draft.active = i; renderScoring(); window.scrollTo(0, 0); }
+
+function cancelGame() {
+  draft = { players: [], scores: {}, active: 0, finished: false };
+  document.getElementById('play-score').hidden = true;
+  document.getElementById('play-result').hidden = true;
+  document.getElementById('play-setup').hidden = false;
+  renderSetup();
+  window.scrollTo(0, 0);
+}
+
+function draftTotals() {
+  return draft.players.map(p => {
+    const sc = draft.scores[p];
+    const total = KEYS.reduce((a, k) => a + (sc[k] || 0), 0);
+    return { p, total, ...Object.fromEntries(KEYS.map(k => [k, sc[k] || 0])) };
+  });
+}
+
+function finishGame() {
+  const rows = draftTotals();
+  const best = Math.max(...rows.map(r => r.total));
+  const winners = rows.filter(r => r.total === best);
+  draft.finished = true;
+
+  document.getElementById('play-score').hidden = true;
+  document.getElementById('play-result').hidden = false;
+
+  document.getElementById('r-cap').textContent = winners.length > 1 ? 'Empate' : 'Vencedor';
+  document.getElementById('r-name').textContent = winners.map(w => w.p).join(' e ');
+  document.getElementById('r-score').textContent = `${best} pontos`;
+  document.getElementById('r-name').style.color = winners.length > 1 ? '' : colorOf(winners[0].p);
+
+  document.getElementById('r-rank').innerHTML = [...rows].sort((a, b) => b.total - a.total)
+    .map((r, i) => `
+      <div class="row">
+        <div class="rank-n">${i + 1}</div>
+        ${avatar(r.p)}
+        <div class="row-main"><div class="row-title">${esc(r.p)}</div></div>
+        <div class="row-val" style="${r.total === best ? 'color:var(--green);font-weight:600' : ''}">${r.total}</div>
+      </div>`).join('');
+
+  document.getElementById('r-card').innerHTML = scorecard({ scores: rows });
+
+  const btn = document.getElementById('r-save');
+  btn.disabled = false;
+  btn.textContent = 'Salvar no histórico';
+  btn.className = 'btn btn-fill';
+  window.scrollTo(0, 0);
+}
+
+function saveGame() {
+  const rows = draftTotals();
+  userGames.push({
+    uid: 'u' + Date.now(),
+    custom: true,
+    date: new Date().toISOString().slice(0, 10),
+    scores: rows,
+  });
+  persist();
+  refreshAll();
+  const btn = document.getElementById('r-save');
+  btn.disabled = true;
+  btn.textContent = 'Salva ✓';
+  btn.className = 'btn btn-tint';
+}
+
+function newGame() {
+  draft = { players: [], scores: {}, active: 0, finished: false };
+  document.getElementById('play-result').hidden = true;
+  document.getElementById('play-score').hidden = true;
+  document.getElementById('play-setup').hidden = false;
+  renderSetup();
+  window.scrollTo(0, 0);
+}
+
+/* ============================================================
+   8. Boot
+   ============================================================ */
+
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+function refreshAll() {
+  rebuild();
+  STATS = computeStats();
+  renderHome();
+  renderGames();
+  renderStats();
+  renderSetup();
+  if (document.getElementById('s-stats').classList.contains('on')) drawCharts();
+}
+
+refreshAll();
+
+/* redraw charts on resize and on theme change */
+let rz;
+window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(drawCharts, 140); });
+if (window.matchMedia) {
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  (mq.addEventListener ? mq.addEventListener.bind(mq, 'change') : mq.addListener.bind(mq))(drawCharts);
+}
+new MutationObserver(drawCharts).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+</script>
+<script>
+/* Cache the shell so the app opens with no connection — handy at the table. */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
